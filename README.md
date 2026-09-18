@@ -1,10 +1,10 @@
-# MGO Brain v0.5.5
+# MGO Brain v0.5.6
 
-MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
+MGO Brain is the vehicle subsystem currently implemented inside the **TAVRELI** project canon: read/observe-first telemetry, diagnostics and digital-twin tooling for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.5
+## Current release: v0.5.6
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -157,8 +157,15 @@ pip install -e '.[dev,analytics,hardware]'
 - `GET /api/v1/ai/context`
 - `WS /ws/live`
 
+## Repository canon
+
+GitHub is the durable source of truth for substantial TAVRELI / MGO Brain knowledge. Read [TAVRELI.md](TAVRELI.md) and the [documentation index](docs/INDEX.md).
+
 ## Documentation
 
+
+- [Documentation index](docs/INDEX.md)
+- [TAVRELI canon](TAVRELI.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Local UI](docs/UI.md)

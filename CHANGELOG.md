@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.6] - 2026-09-18
+
+### Added
+- TAVRELI repo-first canon policy.
+- Documentation index and project-state snapshot.
+- Vehicle baseline, hardware BOM and machine-readable hardware plan.
+- Installation and first-vehicle-day runbooks.
+- Dedicated safety and engineering-evidence policies.
+- Signal-catalog semantics and unresolved-question registry.
+- Data/privacy, AI gateway, testing, release and backup/recovery documentation.
+- External reference index and glossary.
+- Architecture Decision Records.
+- LICENSE, CONTRIBUTING, SECURITY, CODEOWNERS, PR/issue templates and Dependabot.
+- Broader runtime/private-data Git exclusions.
+- Machine-readable project metadata and deployment vehicle-profile example.
+- CI repository-canon test.
+
 ## [0.5.5] - 2026-09-18
 
 ### Added

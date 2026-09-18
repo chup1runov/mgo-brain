@@ -1,6 +1,49 @@
+# Python / tooling
 .venv/
 __pycache__/
 .pytest_cache/
 *.pyc
-data/*.sqlite3
-data/trips/
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Runtime vehicle data
+data/*
+!data/.gitkeep
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.parquet
+*.candump
+*.blf
+*.asc
+*.pcap
+*.pcapng
+
+# CAN research captures / generated evidence outside curated fixtures
+*.log
+survey-data/
+captures/
+
+# Backups / archives
+mgo-brain-backup-*.tar.gz
+*.bak
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Explicitly curated test fixtures may be committed under tests/fixtures/
+!tests/fixtures/
+!tests/fixtures/**

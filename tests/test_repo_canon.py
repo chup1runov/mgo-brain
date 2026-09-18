@@ -1,0 +1,67 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+REQUIRED = [
+    "TAVRELI.md",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/PROJECT_HANDOFF.md",
+    "docs/PROJECT_STATE.md",
+    "docs/ROADMAP.md",
+    "docs/ARCHITECTURE.md",
+    "docs/SAFETY.md",
+    "docs/EVIDENCE_POLICY.md",
+    "docs/VEHICLE_BASELINE.md",
+    "docs/HARDWARE_BOM.md",
+    "docs/INSTALLATION_PLAN.md",
+    "docs/FIRST_VEHICLE_DAY.md",
+    "docs/OPEN_QUESTIONS.md",
+    "docs/DATA_PRIVACY.md",
+    "docs/AI_GATEWAY.md",
+    "docs/TESTING.md",
+    "docs/RELEASE_PROCESS.md",
+    "docs/BACKUP_RECOVERY.md",
+    "docs/REFERENCES.md",
+    "docs/GLOSSARY.md",
+    "docs/UI_CONCEPT.md",
+    "docs/decisions/README.md",
+    "config/project.json",
+    "config/hardware-plan.json",
+    "config/vehicle-profile.example.json",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/dependabot.yml",
+]
+
+
+def test_repository_canon_files_exist():
+    missing = [path for path in REQUIRED if not (ROOT / path).exists()]
+    assert missing == []
+
+
+def test_tavreli_declares_repo_first_rule():
+    text = (ROOT / "TAVRELI.md").read_text(encoding="utf-8").lower()
+    assert "repo-first" in text
+    assert "source of truth" in text
+
+
+def test_project_metadata_matches_package_version():
+    project = json.loads((ROOT / "config" / "project.json").read_text(encoding="utf-8"))
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    version = project["current_release"]
+    assert f'version = "{version}"' in pyproject
+
+
+def test_private_runtime_patterns_are_ignored():
+    ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    for pattern in (".env", "*.sqlite3", "*.parquet", "*.log", "data/*"):
+        assert pattern in ignore

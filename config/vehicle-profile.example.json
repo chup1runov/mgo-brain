@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "vehicle": {
+    "family": "Microcar M.Go / F8 0.5",
+    "model_year": 2017,
+    "engine": "Progress ACT / Lombardini LDW502"
+  },
+  "private_identity": {
+    "registration": null,
+    "vin": null,
+    "note": "Keep exact identity in private deployment config only if operationally required."
+  }
+}
