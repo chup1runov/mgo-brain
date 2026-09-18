@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .faults import FaultScenario
 from .service import MGOBrainService
+from .survey import SurveyAnalyzeRequest, SurveyParseRequest, analyze_text, parse_candump, sample_pair, summarize_records
 
 ROOT = Path(__file__).resolve().parent.parent
 service = MGOBrainService(
@@ -26,7 +27,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.1", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -39,7 +40,7 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.0",
+        "version": "0.5.1",
         "source": service.source.name,
         "analytics": service.analytics.available(),
     }
@@ -63,6 +64,31 @@ def state():
 @app.get("/api/v1/sources")
 def sources():
     return service.source_status()
+
+
+
+@app.get("/api/v1/survey/sample")
+def survey_sample():
+    return sample_pair()
+
+
+@app.post("/api/v1/survey/parse")
+def survey_parse(request: SurveyParseRequest):
+    records, rejected = parse_candump(request.log)
+    return {
+        "summary": summarize_records(records),
+        "rejected": rejected,
+    }
+
+
+@app.post("/api/v1/survey/analyze")
+def survey_analyze(request: SurveyAnalyzeRequest):
+    return analyze_text(
+        request.baseline,
+        request.action,
+        label=request.label,
+        max_candidates=request.max_candidates,
+    )
 
 
 @app.get("/api/v1/events")

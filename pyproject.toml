@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mgo-brain"
-version = "0.5.0"
+version = "0.5.1"
 description = "Local telemetry, diagnostics and digital-twin prototype for Microcar M.Go / Progress ACT"
 requires-python = ">=3.11"
 dependencies = [
@@ -30,6 +30,7 @@ dev = [
 
 [project.scripts]
 mgo-brain = "mgo_brain.main:run"
+mgo-survey = "mgo_brain.survey_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["mgo_brain*"]
