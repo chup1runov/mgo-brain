@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.5] - 2026-09-18
+
+### Added
+- Numeric CAN field discovery against timestamped reference data.
+- u8/s8 and u16 LE/BE signed/unsigned candidate extraction.
+- Linear regression, correlation, R² and RMSE ranking.
+- Counter-likeness penalty to reduce false positives.
+- Synthetic varied-speed test dataset.
+- Numeric discovery REST API and LAB UI.
+- `mgo-discover-numeric` CLI.
+- `docs/NUMERIC_DISCOVERY.md`.
+
 ## [0.5.4] - 2026-09-18
 
 ### Added

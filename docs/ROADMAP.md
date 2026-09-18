@@ -74,6 +74,18 @@
 - [x] Browser Screen Wake Lock request.
 - [x] Display/kiosk tests.
 
+## v0.5.5 — Numeric Signal Discovery (current)
+- [x] Timestamp/reference CSV parser.
+- [x] CAN/reference nearest-time alignment.
+- [x] u8/s8 field hypotheses.
+- [x] u16 LE/BE signed/unsigned hypotheses.
+- [x] Linear fit, R² and RMSE.
+- [x] Counter-likeness penalty.
+- [x] Candidate ranking.
+- [x] Synthetic varied-speed validation.
+- [x] LAB workflow and API.
+- [x] `mgo-discover-numeric` CLI.
+
 ## Hardware survey milestone — next
 
 - [ ] Photograph BFI/fuse-box wiring.

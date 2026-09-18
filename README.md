@@ -1,10 +1,10 @@
-# MGO Brain v0.5.4
+# MGO Brain v0.5.5
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.4
+## Current release: v0.5.5
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -98,6 +98,18 @@ boot → MGO Brain service → /health ready → Chromium kiosk → dashboard
 The PWA supports `?kiosk=1` and requests Screen Wake Lock when supported. A dedicated display remains only a client: logging and diagnostics continue if the browser restarts.
 
 See [Dedicated Display](docs/KIOSK.md).
+
+### Numeric signal discovery
+
+v0.5.5 adds statistical discovery for numeric CAN fields. A timestamped CAN log can be compared with an external reference series such as GPS speed. The workbench tests 8/16-bit signed/unsigned LE/BE hypotheses, fits a linear transformation, calculates R²/RMSE and penalizes counter-like fields.
+
+```bash
+mgo-discover-numeric drive.log gps_speed.csv --label vehicle_speed_gps
+```
+
+Results remain hypotheses until repeated experiments confirm them.
+
+See [Numeric Signal Discovery](docs/NUMERIC_DISCOVERY.md).
 
 ## Hardware safety boundary
 
