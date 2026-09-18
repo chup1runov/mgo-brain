@@ -1,0 +1,14 @@
+[Unit]
+Description=MGO Brain full-screen dashboard
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+EnvironmentFile=-%h/.config/mgo-brain/kiosk.env
+ExecStart=/opt/mgo-brain/.venv/bin/mgo-kiosk
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
