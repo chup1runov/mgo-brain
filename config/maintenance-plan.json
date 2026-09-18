@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "items": [
+    {"component":"engine_oil_and_filter","distance_km":5000,"time_months":12,"source":"Microcar owner manual / Progress ACT"},
+    {"component":"air_filter","distance_km":5000,"time_months":12,"source":"Microcar owner manual / Progress ACT"},
+    {"component":"cvt_belt_inspection","distance_km":5000,"time_months":null,"source":"Microcar owner manual"},
+    {"component":"cvt_belt_replacement","distance_km":10000,"time_months":24,"source":"Microcar owner manual"},
+    {"component":"gearbox_oil","distance_km":10000,"time_months":24,"source":"Microcar owner manual"},
+    {"component":"brake_fluid","distance_km":null,"time_months":24,"source":"Microcar owner manual"},
+    {"component":"coolant","distance_km":null,"time_months":24,"source":"Microcar owner manual"}
+  ]
+}

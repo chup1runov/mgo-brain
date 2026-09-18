@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>MGO Brain</title>
+<style>
+:root { font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color-scheme: dark; }
+body { margin:0; background:#111; color:#eee; }
+main { max-width:760px; margin:auto; padding:20px; }
+header { display:flex; align-items:end; justify-content:space-between; gap:12px; }
+h1 { margin:0; font-size:1.7rem; }
+#overall { font-weight:700; font-size:1.1rem; }
+.hero { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0; }
+.card { background:#1b1b1b; border:1px solid #333; border-radius:14px; padding:16px; }
+.big { font-size:2.4rem; font-weight:700; }
+.grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.label { color:#aaa; font-size:.8rem; }
+.value { font-size:1.3rem; margin-top:4px; }
+footer { color:#888; margin-top:18px; font-size:.8rem; }
+@media(min-width:620px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+</style>
+</head>
+<body><main>
+<header><div><h1>MGO Brain</h1><div class="label">v0.1 • simulator</div></div><div id="overall">…</div></header>
+<div class="hero">
+  <div class="card"><div class="label">SPEED</div><div class="big"><span id="speed">0</span><small> km/h</small></div></div>
+  <div class="card"><div class="label">ENGINE</div><div class="big"><span id="rpm">0</span><small> rpm</small></div></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="label">MODE</div><div class="value" id="mode">OFF</div></div>
+  <div class="card"><div class="label">COOLANT</div><div class="value" id="coolant">–</div></div>
+  <div class="card"><div class="label">OIL</div><div class="value" id="oil">–</div></div>
+  <div class="card"><div class="label">OIL PRESSURE</div><div class="value" id="oilp">–</div></div>
+  <div class="card"><div class="label">BATTERY</div><div class="value" id="battery">–</div></div>
+  <div class="card"><div class="label">CVT RATIO</div><div class="value" id="cvt">–</div></div>
+  <div class="card"><div class="label">GEAR</div><div class="value" id="gear">N</div></div>
+  <div class="card"><div class="label">FUEL</div><div class="value" id="fuel">–</div></div>
+  <div class="card"><div class="label">AMBIENT</div><div class="value" id="ambient">–</div></div>
+</div>
+<footer>Read-only digital-twin prototype. Critical vehicle functions remain independent of MGO Brain.</footer>
+<script>
+const $=id=>document.getElementById(id);
+function val(s,n){ return s.signals?.[n]?.value; }
+function show(s){
+  $('mode').textContent=s.mode;
+  $('speed').textContent=Math.round(val(s,'vehicle.speed') ?? 0);
+  $('rpm').textContent=Math.round(val(s,'engine.rpm') ?? 0);
+  $('coolant').textContent=(val(s,'engine.coolant_temp') ?? '–')+' °C';
+  $('oil').textContent=(val(s,'engine.oil_temp') ?? '–')+' °C';
+  $('oilp').textContent=(val(s,'engine.oil_pressure') ?? '–')+' bar';
+  $('battery').textContent=(val(s,'electrical.battery_voltage') ?? '–')+' V';
+  $('cvt').textContent=val(s,'transmission.cvt_ratio') ?? '–';
+  $('gear').textContent=val(s,'transmission.gear') ?? '–';
+  $('fuel').textContent=(val(s,'fuel.level') ?? '–')+' %';
+  $('ambient').textContent=(val(s,'environment.ambient_temp') ?? '–')+' °C';
+}
+async function status(){ try { const x=await (await fetch('/api/v1/health-summary')).json(); $('overall').textContent='● '+x.overall; }catch{} }
+const proto=location.protocol==='https:'?'wss':'ws';
+const ws=new WebSocket(`${proto}://${location.host}/ws/live`);
+ws.onmessage=e=>show(JSON.parse(e.data));
+setInterval(status,1500); status();
+</script>
+</main></body></html>
