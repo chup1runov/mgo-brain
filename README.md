@@ -1,10 +1,10 @@
-# MGO Brain v0.5.2
+# MGO Brain v0.5.3
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.2
+## Current release: v0.5.3
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -65,6 +65,27 @@ mgo-survey-session baseline.log action.log --label driver_door_open
 ```
 
 See [Commissioning & Replay](docs/COMMISSIONING.md).
+
+### Deployment Pack
+
+v0.5.3 prepares MGO Brain to run as an appliance on a Linux vehicle computer:
+
+- runtime data/config directories controlled by environment variables;
+- systemd auto-start template;
+- Avahi HTTP advertisement for local discovery;
+- `mgo-doctor` runtime/preflight checks;
+- `mgo-backup` consistent data/config backup;
+- SQLite is backed up through SQLite's backup API rather than copying a live database file.
+
+Default deployed layout:
+
+```text
+/opt/mgo-brain      code + venv
+/etc/mgo-brain      reviewed configuration
+/var/lib/mgo-brain  SQLite / Parquet / CAN survey sessions
+```
+
+See [deployment/README.md](deployment/README.md).
 
 ## Hardware safety boundary
 

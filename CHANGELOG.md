@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.3] - 2026-09-18
+
+### Added
+- Environment-driven runtime data/config paths.
+- systemd vehicle-service template.
+- Avahi HTTP service descriptor.
+- `mgo-doctor` deployment preflight.
+- `mgo-backup` consistent data/config archive.
+- SQLite backup via the SQLite backup API.
+- Deployment layout and runtime-settings tests.
+- `deployment/README.md`.
+
 ## [0.5.2] - 2026-09-18
 
 ### Added

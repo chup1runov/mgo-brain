@@ -53,6 +53,16 @@
 - [x] `mgo-survey-session` CLI.
 - [x] Recorder/replay/session round-trip tests.
 
+## v0.5.3 — Deployment Pack (current)
+- [x] Environment-based runtime paths.
+- [x] Separate config/data directories.
+- [x] systemd auto-start unit.
+- [x] Avahi HTTP service descriptor.
+- [x] `mgo-doctor` preflight diagnostics.
+- [x] `mgo-backup` consistent backup.
+- [x] SQLite online backup handling.
+- [x] Deployment layout tests.
+
 ## Hardware survey milestone — next
 
 - [ ] Photograph BFI/fuse-box wiring.
