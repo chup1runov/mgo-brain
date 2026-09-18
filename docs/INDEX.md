@@ -1,10 +1,10 @@
 # Documentation Index
 
-This is the main entry point for TAVRELI / MGO Brain documentation.
+This is the main entry point for **MGO Brain** documentation.
 
 ## Canon / current state
 
-- [TAVRELI repo-first policy](../TAVRELI.md)
+- [Project canon / repo-first policy](../PROJECT.md)
 - [Project state](PROJECT_STATE.md)
 - [Project handoff](PROJECT_HANDOFF.md)
 - [Roadmap](ROADMAP.md)

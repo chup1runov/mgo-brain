@@ -6,7 +6,7 @@ MGO Brain is currently a private engineering project. Contributions should prese
 
 Read:
 
-1. `TAVRELI.md`
+1. `PROJECT.md`
 2. `docs/SAFETY.md`
 3. `docs/ARCHITECTURE.md`
 4. relevant ADRs under `docs/decisions/`
@@ -20,8 +20,8 @@ Read:
 - Do not put AI in the sole path for a critical alert.
 - Do not commit credentials, API keys, precise private location history or raw private media.
 - Mark unverified hardware and CAN discoveries explicitly.
-- Add or update tests for behavioral changes.
-- Update documentation, roadmap, changelog and handoff when a change materially alters the system.
+- Add/update tests for behavioral changes.
+- Update documentation, roadmap, changelog and handoff when a material project decision changes.
 
 ## Development
 
@@ -35,11 +35,4 @@ pytest -q
 
 ## Commit style
 
-Prefer small, descriptive commits:
-
-- `Add ...`
-- `Fix ...`
-- `Document ...`
-- `Refactor ...`
-
-Do not combine unrelated mechanical/project documentation and code changes unless they form one coherent milestone.
+Prefer small descriptive commits: `Add`, `Fix`, `Document`, `Refactor`.

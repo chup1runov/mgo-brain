@@ -1,6 +1,6 @@
 # Code of Conduct
 
-TAVRELI / MGO Brain is an engineering project. Collaboration should remain professional, evidence-based and safe.
+MGO Brain is an engineering project. Collaboration should remain professional, evidence-based and safe.
 
 Expected:
 
@@ -8,7 +8,7 @@ Expected:
 - distinguish fact, observation, hypothesis and preference;
 - review safety-impacting changes carefully;
 - keep feedback focused on the work;
-- respect privacy and do not publish another person's private telemetry/location;
+- respect privacy and do not publish private telemetry/location;
 - disclose uncertainty rather than presenting guesses as confirmed vehicle facts.
 
 Not acceptable:
@@ -18,4 +18,4 @@ Not acceptable:
 - publishing secrets/private telemetry without authorization;
 - intentionally bypassing project safety boundaries.
 
-Project maintainers may remove contributions or restrict participation when needed to protect safety, privacy or productive collaboration.
+Maintainers may remove contributions or restrict participation to protect safety, privacy or productive collaboration.

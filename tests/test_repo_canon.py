@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 REQUIRED = [
-    "TAVRELI.md",
+    "PROJECT.md",
     "LICENSE",
     "CONTRIBUTING.md",
     "SECURITY.md",
@@ -48,16 +48,18 @@ def test_repository_canon_files_exist():
     assert missing == []
 
 
-def test_tavreli_declares_repo_first_rule():
-    text = (ROOT / "TAVRELI.md").read_text(encoding="utf-8").lower()
+def test_project_declares_repo_first_rule():
+    text = (ROOT / "PROJECT.md").read_text(encoding="utf-8").lower()
     assert "repo-first" in text
     assert "source of truth" in text
+    assert "mgo brain" in text
 
 
 def test_project_metadata_matches_package_version():
     project = json.loads((ROOT / "config" / "project.json").read_text(encoding="utf-8"))
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     version = project["current_release"]
+    assert project["project_name"] == "MGO Brain"
     assert f'version = "{version}"' in pyproject
 
 

@@ -38,6 +38,4 @@
 
 **Kiosk** — dedicated fullscreen display mode.
 
-**MGO Brain** — the read/observe-first vehicle telemetry/diagnostics subsystem in this repository.
-
-**TAVRELI** — owner-specified project namespace/canon; this repository currently contains its MGO Brain vehicle subsystem.
+**MGO Brain** — the read/observe-first vehicle telemetry/diagnostics project in this repository.

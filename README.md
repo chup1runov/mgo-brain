@@ -1,6 +1,6 @@
 # MGO Brain v0.5.6
 
-MGO Brain is the vehicle subsystem currently implemented inside the **TAVRELI** project canon: read/observe-first telemetry, diagnostics and digital-twin tooling for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
+MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
@@ -42,9 +42,7 @@ Preferred-source fallback is freshness-aware. A higher-priority CAN value wins w
 
 ### CAN Survey Toolkit
 
-v0.5.1 adds a differential CAN research tool. Paste or load a baseline candump and a one-action candump in LAB; MGO Brain ranks IDs/bytes most correlated with the action and produces a safe message-only DBC draft.
-
-CLI:
+v0.5.1 adds differential CAN research: baseline vs one-action candump, ranked IDs/bytes and a safe message-only DBC draft.
 
 ```bash
 mgo-survey baseline.log action.log --label driver_door_open --json-out analysis.json --dbc-out draft.dbc
@@ -54,9 +52,7 @@ See [CAN Survey Toolkit](docs/CAN_SURVEY.md).
 
 ### Commissioning & replay
 
-v0.5.2 adds a receive-only CAN recorder, offline candump replay and persistent research sessions. This means a first PKB839 CAN capture can be replayed and decoded later without the vehicle.
-
-Commands:
+v0.5.2 adds receive-only CAN recording, offline replay and persistent research sessions.
 
 ```bash
 mgo-can-record --channel can0 --seconds 10 --output capture.log
@@ -70,59 +66,44 @@ See [Commissioning & Replay](docs/COMMISSIONING.md).
 
 v0.5.3 prepares MGO Brain to run as an appliance on a Linux vehicle computer:
 
-- runtime data/config directories controlled by environment variables;
-- systemd auto-start template;
-- Avahi HTTP advertisement for local discovery;
-- `mgo-doctor` runtime/preflight checks;
-- `mgo-backup` consistent data/config backup;
-- SQLite is backed up through SQLite's backup API rather than copying a live database file.
-
-Default deployed layout:
-
-```text
-/opt/mgo-brain      code + venv
-/etc/mgo-brain      reviewed configuration
-/var/lib/mgo-brain  SQLite / Parquet / CAN survey sessions
-```
+- environment-controlled runtime paths;
+- systemd auto-start;
+- Avahi HTTP advertisement;
+- `mgo-doctor`;
+- `mgo-backup`;
+- SQLite-safe backup.
 
 See [deployment/README.md](deployment/README.md).
 
 ### Dedicated display
 
-v0.5.4 adds an optional full-screen display launcher. `mgo-kiosk` waits for the backend health endpoint, discovers Chromium/Chrome and starts the dashboard in kiosk mode.
-
-```text
-boot → MGO Brain service → /health ready → Chromium kiosk → dashboard
-```
-
-The PWA supports `?kiosk=1` and requests Screen Wake Lock when supported. A dedicated display remains only a client: logging and diagnostics continue if the browser restarts.
+v0.5.4 adds `mgo-kiosk`: wait for backend health, then open Chromium/Chrome full-screen. The display remains only a client.
 
 See [Dedicated Display](docs/KIOSK.md).
 
 ### Numeric signal discovery
 
-v0.5.5 adds statistical discovery for numeric CAN fields. A timestamped CAN log can be compared with an external reference series such as GPS speed. The workbench tests 8/16-bit signed/unsigned LE/BE hypotheses, fits a linear transformation, calculates R²/RMSE and penalizes counter-like fields.
+v0.5.5 compares timed CAN logs with an external reference series such as GPS speed, testing 8/16-bit signed/unsigned LE/BE hypotheses and ranking correlation/scaling candidates.
 
 ```bash
 mgo-discover-numeric drive.log gps_speed.csv --label vehicle_speed_gps
 ```
 
-Results remain hypotheses until repeated experiments confirm them.
-
 See [Numeric Signal Discovery](docs/NUMERIC_DISCOVERY.md).
+
+### Repository engineering pack
+
+v0.5.6 adds the durable MGO Brain project canon: safety/evidence policies, vehicle baseline, BOM, installation/runbooks, ADRs, privacy/testing/recovery docs and standard GitHub project files.
 
 ## Hardware safety boundary
 
-
 - `SocketCANTransport` exposes receive only; it has no transmit method.
-- The operating system must still configure the factory CAN interface in **listen-only** mode before use.
+- The OS must configure the factory CAN interface **listen-only** during discovery.
 - No factory CAN termination is assumed or added by software.
-- Factory pins, colors, bitrates and CAN IDs remain undefined until measured on PKB839.
+- Factory pins, colors, bitrates and CAN IDs remain undefined until measured on this MGO.
 - MGO Brain must remain removable without affecting normal vehicle operation.
 
 ## Run in simulator mode
-
-Default `config/sources.json` enables only the simulator:
 
 ```bash
 git clone https://github.com/chup1runov/mgo-brain.git
@@ -133,7 +114,7 @@ pip install -e '.[analytics]'
 uvicorn mgo_brain.main:app --host 0.0.0.0 --port 8080
 ```
 
-Install optional hardware libraries when developing hardware adapters:
+Install hardware/development extras with:
 
 ```bash
 pip install -e '.[dev,analytics,hardware]'
@@ -159,13 +140,12 @@ pip install -e '.[dev,analytics,hardware]'
 
 ## Repository canon
 
-GitHub is the durable source of truth for substantial TAVRELI / MGO Brain knowledge. Read [TAVRELI.md](TAVRELI.md) and the [documentation index](docs/INDEX.md).
+GitHub is the durable source of truth for substantial **MGO Brain** knowledge. Read [PROJECT.md](PROJECT.md) and the [documentation index](docs/INDEX.md).
 
 ## Documentation
 
-
 - [Documentation index](docs/INDEX.md)
-- [TAVRELI canon](TAVRELI.md)
+- [Project canon](PROJECT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Local UI](docs/UI.md)

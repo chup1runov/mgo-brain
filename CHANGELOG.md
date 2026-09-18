@@ -3,7 +3,7 @@
 ## [0.5.6] - 2026-09-18
 
 ### Added
-- TAVRELI repo-first canon policy.
+- MGO Brain repo-first project policy.
 - Documentation index and project-state snapshot.
 - Vehicle baseline, hardware BOM and machine-readable hardware plan.
 - Installation and first-vehicle-day runbooks.

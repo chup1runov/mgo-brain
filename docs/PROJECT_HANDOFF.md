@@ -2,11 +2,11 @@
 
 ## Canon
 
-GitHub is the canonical TAVRELI / MGO Brain engineering record. Chat is a working environment, not the durable source of truth.
+GitHub is the canonical **MGO Brain** engineering record. Chat is a working environment, not the durable source of truth.
 
 Start with:
 
-- `TAVRELI.md`
+- `PROJECT.md`
 - `docs/INDEX.md`
 - `docs/PROJECT_STATE.md`
 - `docs/ROADMAP.md`
@@ -41,7 +41,7 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 
 ## Engineering canon added in v0.5.6
 
-- TAVRELI repo-first policy;
+- MGO Brain repo-first project policy;
 - safety and evidence policies;
 - vehicle baseline;
 - hardware BOM / machine-readable hardware plan;

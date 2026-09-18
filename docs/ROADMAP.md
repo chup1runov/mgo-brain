@@ -54,7 +54,7 @@
 ## Current
 
 ### v0.5.6 — Repository Canon & Engineering Pack
-- [x] TAVRELI repo-first policy.
+- [x] MGO Brain repo-first project policy.
 - [x] Standard repository files and templates.
 - [x] Documentation index / project state / open questions.
 - [x] Safety and evidence policies.
