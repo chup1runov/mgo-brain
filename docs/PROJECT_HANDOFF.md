@@ -13,7 +13,7 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 
 ## Current release
 
-`v0.5.1`
+`v0.5.2`
 
 Software now includes:
 - canonical signal/state model;
@@ -26,7 +26,7 @@ Software now includes:
 - receive-only SocketCAN layer;
 - DBC, SensorHub CAN, Modbus, VE.Direct, TPMS and GNSS/IMU adapter boundaries;
 - source freshness/STALE handling;
-- configuration-driven source selection;\n- CAN Survey Toolkit for baseline/action candump comparison and safe DBC draft generation.
+- configuration-driven source selection;\n- CAN Survey Toolkit for baseline/action candump comparison and safe DBC draft generation;\n- receive-only CAN recorder and offline replay;\n- persistent survey-session evidence store with raw logs, analysis and DBC draft.
 
 ## Planned installed topology
 
@@ -48,7 +48,7 @@ Software now includes:
 
 ## Next milestone
 
-v0.5 completes the software work that can be validated without the vehicle. Next, perform the physical CAN/electrical survey on PKB839:
+v0.5.2 completes the CAN research/commissioning software that can be validated without the vehicle. Next, perform the physical CAN/electrical survey on PKB839:
 
 1. photograph BFI/fuse box and nearby harnesses;
 2. identify candidate twisted CAN pair;

@@ -40,6 +40,19 @@
 - [x] browser LAB workflow.
 - [x] `mgo-survey` CLI.
 
+## v0.5.2 — Commissioning & Replay Toolkit (current)
+- [x] Receive-only CAN recorder.
+- [x] Standard candump formatting.
+- [x] Offline candump replay transport.
+- [x] Replay timing scale / no-delay mode.
+- [x] Persistent survey-session evidence store.
+- [x] Browser Save Survey Session workflow.
+- [x] Survey-session API.
+- [x] `mgo-can-record` CLI.
+- [x] `mgo-can-replay` CLI.
+- [x] `mgo-survey-session` CLI.
+- [x] Recorder/replay/session round-trip tests.
+
 ## Hardware survey milestone — next
 
 - [ ] Photograph BFI/fuse-box wiring.

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.2] - 2026-09-18
+
+### Added
+- Receive-only CAN recorder with standard candump output.
+- Offline candump replay transport with timing scaling.
+- Persistent survey-session evidence store.
+- Saved-session LAB workflow and API.
+- `mgo-can-record`, `mgo-can-replay` and `mgo-survey-session` commands.
+- Recorder/replay/session round-trip tests.
+- `docs/COMMISSIONING.md`.
+
 ## [0.5.1] - 2026-09-18
 
 ### Added
