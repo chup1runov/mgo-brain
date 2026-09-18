@@ -11,7 +11,7 @@ COPY config ./config
 COPY static ./static
 COPY data ./data
 
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -e .
 
 EXPOSE 8080
 
