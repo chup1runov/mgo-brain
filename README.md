@@ -1,4 +1,4 @@
-# MGO Brain v0.2
+# MGO Brain v0.3
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
@@ -6,7 +6,7 @@ The current software can be developed without touching the vehicle. It simulates
 
 It deliberately does **not** control the vehicle.
 
-## Current release: v0.2.0
+## Current release: v0.3.0
 
 ### Foundation
 
@@ -15,7 +15,7 @@ It deliberately does **not** control the vehicle.
 - Progress ACT/MGO maintenance-plan registry;
 - vehicle state machine: OFF → ACC → IGNITION → PREHEAT → CRANKING → IDLE/DRIVING → OFF;
 - SQLite event/start/trip metadata;
-- JSONL per-trip telemetry;
+- Parquet/ZSTD per-trip telemetry when the analytics extra is installed;\n- JSONL streaming fallback when DuckDB is unavailable;
 - FastAPI REST API + WebSocket;
 - local mobile-friendly dashboard;
 - AI-context endpoint;
@@ -43,6 +43,22 @@ The diagnostic layer now includes:
 - subsystem health for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
 - `UNKNOWN` rather than false `NORMAL` when a sensor set is missing.
 
+### Historical analytics
+
+v0.3 adds:
+
+- DuckDB-backed local historical analytics;
+- a healthy **reference baseline** separated from the rolling 30-sample window;
+- a 20-sample qualification period before anomaly judgments become active;
+- exclusion of trips/starts with ATTENTION or CRITICAL diagnostic conditions from the healthy reference baseline;
+- heuristic anomaly score + NORMAL / WATCH / ATTENTION status;
+- persistent baseline rebuild from SQLite history after restart;
+- trip comparison API;
+- automatically stored post-trip reports;
+- a fix preventing stopped-engine 0 bar oil pressure from contaminating trip minimums.
+
+The historical layer is not part of the real-time safety path. If DuckDB/Parquet is unavailable, live rules, alerts and health evaluation continue to work.
+
 ## Run
 
 ```bash
@@ -50,7 +66,7 @@ git clone https://github.com/chup1runov/mgo-brain.git
 cd mgo-brain
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -e .
+pip install -e '.[analytics]'
 uvicorn mgo_brain.main:app --host 0.0.0.0 --port 8080
 ```
 
@@ -71,7 +87,7 @@ Core:
 - `GET /api/v1/state`
 - `GET /api/v1/events`
 - `GET /api/v1/trips`
-- `GET /api/v1/starts`
+- `GET /api/v1/starts`\n- `GET /api/v1/trips/{id}/report`\n- `GET /api/v1/baselines`\n- `GET /api/v1/analytics/summary`\n- `GET /api/v1/analytics/compare?trip_a=1&trip_b=2`
 - `GET /api/v1/alerts`
 - `GET /api/v1/health-summary`
 - `GET /api/v1/ai/context`
@@ -103,7 +119,7 @@ Alert lifecycle
         ↓
 Subsystem Health
         ↓
-Storage / REST / WebSocket / Dashboard / AI context
+Reference + rolling baselines / Parquet + DuckDB / reports\n        ↓\nStorage / REST / WebSocket / Dashboard / AI context
 ```
 
 Future physical sources can replace the simulator without changing the consumers:
@@ -129,7 +145,7 @@ MGO Brain is not an ECU replacement. Vehicle-critical OEM functions remain indep
 ## Development
 
 ```bash
-pip install -e '.[dev]'
+pip install -e '.[dev,analytics]'
 python -m compileall -q mgo_brain tests
 pytest -q
 ```

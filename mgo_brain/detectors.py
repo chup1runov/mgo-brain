@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from .analytics import write_row
 from .models import StartEvent, TripSummary, VehicleMode, VehicleState
 
 
@@ -88,7 +88,10 @@ class TripDetector:
         self.file = None
         self.prev_ts: datetime | None = None
         self.speed_integral_kmh_s = 0.0
-        self.samples = 0
+        self.voltage_sum = 0.0
+        self.voltage_n = 0
+        self.cvt_dev_sum = 0.0
+        self.cvt_dev_n = 0
 
     def update(self, state: VehicleState) -> TripSummary | None:
         running = state.mode in {VehicleMode.IDLE, VehicleMode.DRIVING, VehicleMode.REVERSING}
@@ -96,16 +99,17 @@ class TripDetector:
         speed = _float(state.value("vehicle.speed")) or 0.0
 
         if running and self.active is None:
-            stamp = now.strftime("%Y%m%dT%H%M%SZ")
+            stamp = now.strftime("%Y%m%dT%H%M%S_%fZ")
             path = self.trip_dir / f"trip_{stamp}.jsonl"
             self.file = path.open("a", encoding="utf-8")
             self.active = TripSummary(started_at=now, telemetry_path=str(path))
             self.prev_ts = now
             self.speed_integral_kmh_s = 0.0
-            self.samples = 0
+            self.voltage_sum = self.cvt_dev_sum = 0.0
+            self.voltage_n = self.cvt_dev_n = 0
 
         if self.active is not None:
-            self.file.write(json.dumps(state.model_dump(mode="json"), ensure_ascii=False) + "\n")
+            write_row(self.file, state)
             self.file.flush()
             if self.prev_ts:
                 dt = max(0.0, (now - self.prev_ts).total_seconds())
@@ -113,16 +117,32 @@ class TripDetector:
                 self.active.distance_km += speed * dt / 3600.0
                 self.speed_integral_kmh_s += speed * dt
             self.prev_ts = now
-            self.samples += 1
-            self.active.max_speed_kmh = max(self.active.max_speed_kmh, speed)
-            self.active.max_coolant_c = _max_nullable(self.active.max_coolant_c, _float(state.value("engine.coolant_temp")))
-            self.active.max_oil_temp_c = _max_nullable(self.active.max_oil_temp_c, _float(state.value("engine.oil_temp")))
-            self.active.min_oil_pressure_bar = _min_nullable(self.active.min_oil_pressure_bar, _float(state.value("engine.oil_pressure")))
+
+            if running:
+                self.active.max_speed_kmh = max(self.active.max_speed_kmh, speed)
+                self.active.max_coolant_c = _max_nullable(self.active.max_coolant_c, _float(state.value("engine.coolant_temp")))
+                self.active.max_oil_temp_c = _max_nullable(self.active.max_oil_temp_c, _float(state.value("engine.oil_temp")))
+                self.active.min_oil_pressure_bar = _min_nullable(self.active.min_oil_pressure_bar, _float(state.value("engine.oil_pressure")))
+                cvt_peak = _max_nullable(_float(state.value("transmission.cvt_temp_primary")), _float(state.value("transmission.cvt_temp_secondary")))
+                self.active.max_cvt_temp_c = _max_nullable(self.active.max_cvt_temp_c, cvt_peak)
+
+                voltage = _float(state.value("electrical.battery_voltage"))
+                if voltage is not None:
+                    self.voltage_sum += voltage
+                    self.voltage_n += 1
+                cvt_dev = _float(state.value("transmission.cvt_ratio_deviation"))
+                if cvt_dev is not None:
+                    self.cvt_dev_sum += abs(cvt_dev)
+                    self.cvt_dev_n += 1
 
             if not running:
                 self.active.ended_at = now
                 if self.active.duration_s > 0:
                     self.active.avg_speed_kmh = self.speed_integral_kmh_s / self.active.duration_s
+                if self.voltage_n:
+                    self.active.avg_running_voltage_v = self.voltage_sum / self.voltage_n
+                if self.cvt_dev_n:
+                    self.active.avg_cvt_ratio_deviation_pct = self.cvt_dev_sum / self.cvt_dev_n
                 done = self.active
                 self.file.close()
                 self.file = None

@@ -14,7 +14,7 @@
 - [x] AI-context endpoint.
 - [x] CI and Docker packaging.
 
-## v0.2.0 — Fault and health simulator (current)
+## v0.2.0 — Fault and health simulator
 
 - [x] Fault injection framework.
 - [x] Weak-battery scenario.

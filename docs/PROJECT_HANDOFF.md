@@ -16,7 +16,7 @@ MGO Brain should combine factory signals, added sensors, trip/service history an
 
 ## Current software state
 
-Current release: `v0.2.0`.
+Current release: `v0.3.0`.
 
 Working features:
 
@@ -27,7 +27,7 @@ Working features:
 - vehicle mode inference;
 - start/trip detectors;
 - SQLite metadata persistence;
-- JSONL trip telemetry;
+- streaming flat trip telemetry with Parquet/ZSTD finalization when DuckDB is available;
 - basic rule engine;
 - starter/battery baselines;
 - FastAPI REST API;
@@ -38,7 +38,7 @@ Working features:
 - ACTIVE → CLEARED alert lifecycle;
 - subsystem health engine for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
 - fault-laboratory API and dashboard controls;
-- 12 automated tests covering v0.1 core + v0.2 fault/health behavior.
+- historical DuckDB/Parquet analytics;\n- healthy reference + rolling baselines with 20-sample qualification;\n- unhealthy-trip exclusion from reference learning;\n- anomaly scoring, compare-trip API and stored post-trip reports;\n- automated v0.1/v0.2/v0.3 tests including Parquet round-trip in CI.
 
 ## Hardware direction
 

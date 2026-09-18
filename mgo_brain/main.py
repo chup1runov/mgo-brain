@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.3.0", lifespan=lifespan)
 
 
 @app.get("/")
@@ -31,7 +31,7 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.2.0", "source": "simulator"}
+    return {"status": "ok", "version": "0.3.0", "source": "simulator", "analytics": service.analytics.available()}
 
 
 @app.get("/api/v1/state")
@@ -47,6 +47,14 @@ def events(limit: int = 100):
 @app.get("/api/v1/trips")
 def trips(limit: int = 100):
     return service.store.list_trips(min(max(limit, 1), 500))
+
+
+@app.get("/api/v1/trips/{trip_id}/report")
+def trip_report(trip_id: int):
+    report = service.store.get_report(trip_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail=f"No report for trip {trip_id}")
+    return report
 
 
 @app.get("/api/v1/starts")
@@ -67,6 +75,24 @@ def health_summary():
 @app.get("/api/v1/ai/context")
 def ai_context():
     return service.ai_context()
+
+
+@app.get("/api/v1/baselines")
+def baselines():
+    return service.baselines.summary()
+
+
+@app.get("/api/v1/analytics/summary")
+def analytics_summary():
+    return service.analytics_summary()
+
+
+@app.get("/api/v1/analytics/compare")
+def compare_trips(trip_a: int, trip_b: int):
+    result = service.compare_trips(trip_a, trip_b)
+    if result is None:
+        raise HTTPException(status_code=404, detail="One or both trip IDs do not exist")
+    return result
 
 
 @app.get("/api/v1/spec/signals")

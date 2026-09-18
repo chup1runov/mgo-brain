@@ -37,7 +37,7 @@ VehicleState + state machine
 Rules + baseline/anomaly engine
         |
         v
-SQLite / trip files / future Parquet + DuckDB
+SQLite metadata + Parquet/DuckDB history
         |
         +--> REST API
         +--> WebSocket live state

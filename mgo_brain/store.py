@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from threading import Lock
 
-from .models import Event, StartEvent, TripSummary
+from .models import Event, PostTripReport, StartEvent, TripSummary
 
 
 class Store:
@@ -45,6 +45,11 @@ class Store:
               ended_at TEXT,
               payload_json TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS reports (
+              trip_id INTEGER PRIMARY KEY,
+              generated_at TEXT NOT NULL,
+              payload_json TEXT NOT NULL
+            );
             """)
 
     def add_event(self, event: Event) -> int:
@@ -65,6 +70,25 @@ class Store:
                             (trip.started_at.isoformat(), trip.ended_at.isoformat() if trip.ended_at else None, trip.model_dump_json()))
             return int(cur.lastrowid)
 
+    def update_trip(self, trip: TripSummary) -> None:
+        if trip.id is None:
+            raise ValueError("Trip must have an id before update")
+        with self._lock, self._connect() as c:
+            c.execute(
+                "UPDATE trips SET started_at=?, ended_at=?, payload_json=? WHERE id=?",
+                (trip.started_at.isoformat(), trip.ended_at.isoformat() if trip.ended_at else None, trip.model_dump_json(), trip.id),
+            )
+
+    def add_report(self, report: PostTripReport) -> None:
+        if report.trip_id is None:
+            raise ValueError("Post-trip report requires trip_id")
+        with self._lock, self._connect() as c:
+            c.execute(
+                "INSERT INTO reports(trip_id,generated_at,payload_json) VALUES(?,?,?) "
+                "ON CONFLICT(trip_id) DO UPDATE SET generated_at=excluded.generated_at,payload_json=excluded.payload_json",
+                (report.trip_id, report.generated_at.isoformat(), report.model_dump_json()),
+            )
+
     def list_events(self, limit: int = 100) -> list[dict]:
         with self._connect() as c:
             rows = c.execute("SELECT * FROM events ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
@@ -79,3 +103,24 @@ class Store:
         with self._connect() as c:
             rows = c.execute("SELECT * FROM trips ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [json.loads(r["payload_json"]) | {"id": r["id"]} for r in rows]
+
+    def get_trip(self, trip_id: int) -> dict | None:
+        with self._connect() as c:
+            row = c.execute("SELECT * FROM trips WHERE id=?", (trip_id,)).fetchone()
+        if not row:
+            return None
+        return json.loads(row["payload_json"]) | {"id": row["id"]}
+
+    def add_or_get_report(self, report: PostTripReport) -> PostTripReport:
+        self.add_report(report)
+        return report
+
+    def get_report(self, trip_id: int) -> dict | None:
+        with self._connect() as c:
+            row = c.execute("SELECT payload_json FROM reports WHERE trip_id=?", (trip_id,)).fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
+    def list_reports(self, limit: int = 100) -> list[dict]:
+        with self._connect() as c:
+            rows = c.execute("SELECT payload_json FROM reports ORDER BY trip_id DESC LIMIT ?", (limit,)).fetchall()
+        return [json.loads(r["payload_json"]) for r in rows]

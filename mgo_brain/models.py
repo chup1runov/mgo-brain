@@ -76,6 +76,7 @@ class StartEvent(BaseModel):
     min_crank_voltage_v: float | None = None
     cranking_rpm: float | None = None
     time_to_idle_s: float | None = None
+    baseline_eligible: bool = True
 
 
 class TripSummary(BaseModel):
@@ -89,7 +90,22 @@ class TripSummary(BaseModel):
     max_coolant_c: float | None = None
     max_oil_temp_c: float | None = None
     min_oil_pressure_bar: float | None = None
+    avg_running_voltage_v: float | None = None
+    avg_cvt_ratio_deviation_pct: float | None = None
+    max_cvt_temp_c: float | None = None
+    diagnostic_status: str = "NORMAL"
+    baseline_eligible: bool = True
     telemetry_path: str | None = None
+
+
+class PostTripReport(BaseModel):
+    generated_at: datetime = Field(default_factory=utcnow)
+    trip_id: int | None = None
+    status: str = "NORMAL"
+    eligible_for_baseline: bool = True
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    anomalies: list[dict[str, Any]] = Field(default_factory=list)
+    findings: list[str] = Field(default_factory=list)
 
 
 class HealthItem(BaseModel):
