@@ -30,7 +30,18 @@
 - [x] Source selection through `config/sources.json`.
 - [x] Optional hardware dependency CI.
 
+## v0.5.1 — CAN Survey Toolkit (current)
+- [x] candump parser.
+- [x] baseline/action differential comparison.
+- [x] candidate CAN ID ranking.
+- [x] changed-byte ranking with noise penalty.
+- [x] presence-only ID detection.
+- [x] safe message-only DBC draft.
+- [x] browser LAB workflow.
+- [x] `mgo-survey` CLI.
+
 ## Hardware survey milestone — next
+
 - [ ] Photograph BFI/fuse-box wiring.
 - [ ] Identify factory CAN twisted pair.
 - [ ] Confirm bus resistance.

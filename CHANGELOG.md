@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.1] - 2026-09-18
+
+### Added
+- CAN/candump parser for hash and bracket formats.
+- Baseline-vs-action CAN differential analyzer.
+- Ranking of candidate CAN IDs and changed byte positions.
+- Noise-aware scoring for stable toggles vs counters.
+- Safe message-only DBC draft generation.
+- Survey sample dataset for demonstration/testing.
+- Survey REST API.
+- `mgo-survey` CLI.
+- LAB UI for paste/analyze workflow.
+- `docs/CAN_SURVEY.md`.
+
 ## [0.5.0] - 2026-09-18
 
 ### Added

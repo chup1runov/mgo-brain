@@ -1,10 +1,10 @@
-# MGO Brain v0.5
+# MGO Brain v0.5.1
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.0
+## Current release: v0.5.1
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -40,7 +40,20 @@ Implemented source boundaries:
 
 Preferred-source fallback is freshness-aware. A higher-priority CAN value wins while fresh; if it becomes stale, a fresh lower-priority source can take over. STALE/MISSING/INVALID signals are not treated as live by the vehicle state machine or subsystem readiness checks.
 
+### CAN Survey Toolkit
+
+v0.5.1 adds a differential CAN research tool. Paste or load a baseline candump and a one-action candump in LAB; MGO Brain ranks IDs/bytes most correlated with the action and produces a safe message-only DBC draft.
+
+CLI:
+
+```bash
+mgo-survey baseline.log action.log --label driver_door_open --json-out analysis.json --dbc-out draft.dbc
+```
+
+See [CAN Survey Toolkit](docs/CAN_SURVEY.md).
+
 ## Hardware safety boundary
+
 
 - `SocketCANTransport` exposes receive only; it has no transmit method.
 - The operating system must still configure the factory CAN interface in **listen-only** mode before use.
