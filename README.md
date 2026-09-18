@@ -1,10 +1,10 @@
-# MGO Brain v0.5.3
+# MGO Brain v0.5.4
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.3
+## Current release: v0.5.4
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -86,6 +86,18 @@ Default deployed layout:
 ```
 
 See [deployment/README.md](deployment/README.md).
+
+### Dedicated display
+
+v0.5.4 adds an optional full-screen display launcher. `mgo-kiosk` waits for the backend health endpoint, discovers Chromium/Chrome and starts the dashboard in kiosk mode.
+
+```text
+boot → MGO Brain service → /health ready → Chromium kiosk → dashboard
+```
+
+The PWA supports `?kiosk=1` and requests Screen Wake Lock when supported. A dedicated display remains only a client: logging and diagnostics continue if the browser restarts.
+
+See [Dedicated Display](docs/KIOSK.md).
 
 ## Hardware safety boundary
 

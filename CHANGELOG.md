@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.4] - 2026-09-18
+
+### Added
+- Dedicated-screen `mgo-kiosk` launcher.
+- Backend readiness polling before browser launch.
+- Chromium/Chrome discovery and kiosk command profile.
+- User-level systemd kiosk service.
+- Kiosk environment template.
+- PWA `?kiosk=1` mode and Screen Wake Lock request.
+- Display/kiosk tests.
+- `docs/KIOSK.md`.
+
 ## [0.5.3] - 2026-09-18
 
 ### Added

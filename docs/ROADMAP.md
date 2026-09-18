@@ -63,6 +63,17 @@
 - [x] SQLite online backup handling.
 - [x] Deployment layout tests.
 
+## v0.5.4 — Display / Kiosk Pack (current)
+- [x] `mgo-kiosk` launcher.
+- [x] Backend health wait before browser start.
+- [x] Chromium/Chrome auto-discovery.
+- [x] Full-screen kiosk command profile.
+- [x] Restarting user systemd kiosk unit.
+- [x] Kiosk environment template.
+- [x] PWA `?kiosk=1` mode.
+- [x] Browser Screen Wake Lock request.
+- [x] Display/kiosk tests.
+
 ## Hardware survey milestone — next
 
 - [ ] Photograph BFI/fuse-box wiring.
