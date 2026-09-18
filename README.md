@@ -1,58 +1,77 @@
-# MGO Brain v0.4
+# MGO Brain v0.5
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.4.0
+## Current release: v0.5.0
 
-### Software foundation
+v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
-- canonical signal model with source/quality metadata;
-- 80-signal registry;
-- vehicle state machine and synthetic M.Go drive cycle;
-- start/trip detection and SQLite metadata;
-- deterministic safety rules;
-- nine injectable fault scenarios;
-- ACTIVE → CLEARED alert lifecycle;
-- ENGINE / CVT / ELECTRICAL / TYRES / BRAKES health model;
-- healthy reference + rolling historical baselines;
-- 20-sample qualification period;
-- Parquet/ZSTD trip telemetry with DuckDB analytics;
-- trip comparison and stored post-trip reports;
-- REST API, WebSocket and AI-context endpoint.
+### Source architecture
 
-### Local vehicle console
+```text
+Simulator / factory CAN / Sensor CAN / Modbus / SmartShunt / TPMS / GNSS-IMU
+                              ↓
+                         SourceAdapter
+                              ↓
+                           SourceMux
+                              ↓
+                        StateAggregator
+                              ↓
+                         VehicleState
+                              ↓
+rules / health / trips / baselines / analytics / UI / AI
+```
 
-v0.4 adds seven local views:
+Implemented source boundaries:
 
-- **HOME** — speed/RPM, overall/subsystem health, active alerts, latest trip;
-- **ENGINE** — coolant, oil, RPM, glow/starter data, starts and baselines;
-- **CVT** — ratio/drift and primary/secondary temperatures;
-- **POWER** — battery/current/SoC/alternator and electrical baselines;
-- **TRIPS** — history, report viewer and two-trip comparison;
-- **SERVICE** — documented maintenance-plan registry;
-- **LAB** — simulator faults, analytics status, baselines and raw normalized state.
+- simulator adapter;
+- receive-only SocketCAN transport API;
+- lazy DBC decoder with canonical-signal mapping;
+- SensorHub CAN v1 codec/adapter;
+- Modbus RTU digital and analog input adapters;
+- VE.Direct text parser/adapter for future battery monitor;
+- generic TPMS adapter;
+- generic GNSS/IMU adapter;
+- multi-source fan-in (`SourceMux`);
+- quality/freshness-aware `StateAggregator`;
+- configurable source selection in `config/sources.json`.
 
-The web UI is an installable PWA. The service worker caches the application shell only; `/api/` and WebSocket vehicle data are never replaced by stale cached values.
+Preferred-source fallback is freshness-aware. A higher-priority CAN value wins while fresh; if it becomes stale, a fresh lower-priority source can take over. STALE/MISSING/INVALID signals are not treated as live by the vehicle state machine or subsystem readiness checks.
 
-## Run
+## Hardware safety boundary
+
+- `SocketCANTransport` exposes receive only; it has no transmit method.
+- The operating system must still configure the factory CAN interface in **listen-only** mode before use.
+- No factory CAN termination is assumed or added by software.
+- Factory pins, colors, bitrates and CAN IDs remain undefined until measured on PKB839.
+- MGO Brain must remain removable without affecting normal vehicle operation.
+
+## Run in simulator mode
+
+Default `config/sources.json` enables only the simulator:
 
 ```bash
 git clone https://github.com/chup1runov/mgo-brain.git
 cd mgo-brain
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -e '.[analytics]'
 uvicorn mgo_brain.main:app --host 0.0.0.0 --port 8080
 ```
 
-Open `http://localhost:8080/`.
+Install optional hardware libraries when developing hardware adapters:
+
+```bash
+pip install -e '.[dev,analytics,hardware]'
+```
 
 ## Main API
 
 - `GET /health`
 - `GET /api/v1/state`
+- `GET /api/v1/sources`
 - `GET /api/v1/events`
 - `GET /api/v1/alerts`
 - `GET /api/v1/health-summary`
@@ -64,34 +83,14 @@ Open `http://localhost:8080/`.
 - `GET /api/v1/analytics/summary`
 - `GET /api/v1/analytics/compare?trip_a=1&trip_b=2`
 - `GET /api/v1/ai/context`
-- `GET /api/v1/spec/signals`
-- `GET /api/v1/spec/maintenance`
 - `WS /ws/live`
-
-## Safety boundary
-
-- factory CAN discovery is listen-only;
-- factory pin numbers/wire colors are never guessed;
-- MGO Brain must not be required for engine start, braking, gear selection or OEM oil/overheat warnings;
-- critical alerts remain local/deterministic;
-- AI is explanatory, not the sole safety mechanism;
-- historical analytics are outside the real-time safety path.
 
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Local UI](docs/UI.md)
 - [Fault laboratory](docs/FAULT_LAB.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Project handoff](docs/PROJECT_HANDOFF.md)
 - [Changelog](CHANGELOG.md)
-
-## Development
-
-```bash
-pip install -e '.[dev,analytics]'
-python -m compileall -q mgo_brain tests
-pytest -q
-```
-
-Local verification before push: **22 tests passed, 1 DuckDB-specific test skipped when DuckDB was unavailable locally**. GitHub CI installs the analytics extra and must run the complete suite on Python 3.11, 3.12 and 3.13.

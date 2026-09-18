@@ -1,82 +1,53 @@
 # MGO Brain Roadmap
 
 ## v0.1.0 — Software foundation
-
-- [x] Canonical signal model and 80-signal registry.
-- [x] Vehicle state machine and simulator.
-- [x] Start/trip detection.
-- [x] SQLite persistence.
-- [x] REST/WebSocket/API foundation.
-- [x] Docker + CI.
+- [x] Canonical signal model, simulator, state machine, persistence, REST/WebSocket, Docker/CI.
 
 ## v0.2.0 — Fault and health simulator
-
-- [x] Nine fault-injection scenarios.
-- [x] Deterministic fault rules.
-- [x] ACTIVE → CLEARED lifecycle.
-- [x] ENGINE / CVT / ELECTRICAL / TYRES / BRAKES health.
-- [x] Honest UNKNOWN state for uninstrumented subsystems.
-- [x] Fault-lab API/dashboard.
+- [x] Nine fault scenarios, deterministic rules, alert lifecycle and subsystem health.
 
 ## v0.3.0 — Historical analytics
+- [x] Parquet/DuckDB, reference/rolling baselines, anomaly scoring, reports and comparison.
 
-- [x] Streaming flat trip telemetry.
-- [x] Parquet/ZSTD trip finalization.
-- [x] DuckDB analytics.
-- [x] Reference + rolling baselines.
-- [x] 20-sample qualification period.
-- [x] Exclude unhealthy samples from reference learning.
-- [x] Baseline rebuild after restart.
-- [x] Anomaly scoring.
-- [x] Compare-trip API.
-- [x] Stored post-trip reports.
-- [x] Running-only trip aggregation.
+## v0.4.0 — Complete local UI
+- [x] HOME / ENGINE / CVT / POWER / TRIPS / SERVICE / LAB PWA.
 
-## v0.4.0 — Complete local UI (current)
+## v0.5.0 — Hardware abstraction (current)
+- [x] Formal `SourceAdapter` / `SourceUpdate` contract.
+- [x] Simulator migrated behind SourceAdapter.
+- [x] Multi-source `SourceMux`.
+- [x] Freshness/quality-aware `StateAggregator`.
+- [x] Preferred-source failover when the primary becomes stale.
+- [x] STALE-aware vehicle state machine and subsystem readiness.
+- [x] Receive-only SocketCAN transport API.
+- [x] DBC loader/decoder with canonical mapping.
+- [x] SensorHub CAN v1 protocol and adapter.
+- [x] Modbus/RS485 digital-input adapter.
+- [x] Modbus/RS485 analog-input adapter.
+- [x] VE.Direct battery-monitor parser/adapter.
+- [x] Generic TPMS adapter.
+- [x] Generic GNSS/IMU adapter.
+- [x] Source selection through `config/sources.json`.
+- [x] Optional hardware dependency CI.
 
-- [x] HOME.
-- [x] ENGINE.
-- [x] CVT.
-- [x] POWER / ELECTRICAL.
-- [x] TRIPS with reports and comparison.
-- [x] SERVICE.
-- [x] LAB/debug/fault laboratory.
-- [x] PWA manifest + icon.
-- [x] Offline application shell.
-- [x] Dynamic API/WebSocket data excluded from stale-cache fallback.
-- [x] Responsive mobile/desktop navigation.
-
-## v0.5 — Hardware abstraction
-
-- [ ] Formal SourceAdapter protocol.
-- [ ] Simulator migrated behind SourceAdapter.
-- [ ] SocketCAN receive-only adapter.
-- [ ] DBC loader/decoder.
-- [ ] SensorHub CAN protocol.
-- [ ] Modbus/RS485 input adapter.
-- [ ] Battery-monitor adapter.
-- [ ] TPMS adapter.
-- [ ] GNSS/IMU adapter.
-- [ ] Source selection by configuration.
-
-## Hardware survey milestone
-
+## Hardware survey milestone — next
 - [ ] Photograph BFI/fuse-box wiring.
 - [ ] Identify factory CAN twisted pair.
-- [ ] Confirm bus resistance and bitrate.
-- [ ] Record first listen-only CAN dumps.
+- [ ] Confirm bus resistance.
+- [ ] Determine bitrate.
+- [ ] Bring interface up in OS listen-only mode.
+- [ ] Record first passive CAN dumps.
 - [ ] Map door, D/N/R, brake, lights, speed and fuel one action at a time.
 - [ ] Create first `MGO4_CAN.dbc`.
 
 ## v0.6 — First real vehicle data
-
 - [ ] AutoPi installed with protected power.
 - [ ] Factory CAN connected listen-only.
 - [ ] Real speed/gear/body signals normalized.
+- [ ] Simulator/real sources selectable on the installed unit.
 - [ ] Logging verified over multiple trips.
 
 ## v0.7 — Engine and power instrumentation
-
 - [ ] Battery current/SoC monitor.
 - [ ] RPM source.
 - [ ] Independent coolant temperature.
@@ -86,7 +57,6 @@
 - [ ] Alternator characterization.
 
 ## v0.8 — CVT / condition monitoring
-
 - [ ] Primary/secondary CVT temperature.
 - [ ] Gearbox temperature.
 - [ ] RPM-speed CVT model.
@@ -95,7 +65,6 @@
 - [ ] Body-vs-engine vibration separation.
 
 ## v0.9 — Peripheral monitoring
-
 - [ ] TPMS ×4.
 - [ ] Brake thermal comparison.
 - [ ] Cabin temperature/humidity/CO2.
@@ -103,7 +72,6 @@
 - [ ] Camera/event timestamps.
 
 ## v1.0 — Operational MGO Brain
-
 - [ ] automatic startup/shutdown;
 - [ ] MGO Brain failure cannot prevent normal vehicle operation;
 - [ ] factory CAN read passively;

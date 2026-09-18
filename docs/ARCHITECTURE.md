@@ -1,80 +1,44 @@
 # MGO Brain Architecture
 
-MGO Brain is a read/observe-first telemetry and condition-monitoring platform for a 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502.
+## Core principle
 
-## Safety boundary
-
-MGO Brain is not a replacement ECU and must not become a single point of failure. The vehicle must remain operable if MGO Brain is unplugged or failed.
-
-- factory CAN discovery is listen-only;
-- OEM digital signals are sensed in isolation when needed;
-- added sensors supplement rather than replace OEM warnings;
-- deterministic critical alerts work without cloud/AI;
-- historical analytics are outside the real-time safety path.
-
-## Logical architecture
+Every input source emits partial canonical `SourceUpdate` objects. The core never depends directly on CAN, serial, Modbus or a particular vendor.
 
 ```text
-Physical/simulated sources
+physical/simulated sources
         ↓
-SourceAdapter layer
+SourceAdapter(s)
         ↓
-Canonical signals + quality/source metadata
+SourceMux
         ↓
-VehicleState + state machine
+StateAggregator
+ quality + freshness + preferred-source fallback
         ↓
-Start / Trip detectors
+VehicleState
         ↓
-Deterministic rules → Alert lifecycle → Subsystem health
+state machine / rules / alerts / health
         ↓
-Healthy reference baseline + rolling baseline
+trips / baselines / Parquet-DuckDB
         ↓
-SQLite metadata/reports + Parquet/ZSTD telemetry
-        ↓
-DuckDB historical analytics
-        ↓
-REST / WebSocket / AI context
-        ↓
-Local PWA console
-HOME | ENGINE | CVT | POWER | TRIPS | SERVICE | LAB
+REST / WebSocket / PWA / AI context
 ```
 
-## Historical learning policy
+## Freshness model
 
-The healthy reference baseline excludes starts/trips associated with ATTENTION or CRITICAL diagnostic conditions. Those observations may still enter the rolling window, which makes gradual drift visible against the healthier reference.
+`StateAggregator` retains the latest reading for each canonical signal. A reading older than `stale_after_s` is exposed as `STALE`. Preferred source priority applies only while that source remains fresh. A fresh fallback may replace a stale preferred source.
 
-Reference baselines require 20 eligible samples before anomaly classification becomes qualified. Before then the result is `UNQUALIFIED`.
+`VehicleMode` and subsystem-readiness logic ignore STALE/MISSING/INVALID readings so old RPM or pressure values cannot masquerade as live telemetry.
 
-The anomaly score is a project heuristic, not a manufacturer service limit.
+## Factory CAN boundary
 
-## Storage
+`SocketCANTransport` exposes `recv()` and `close()` only. It intentionally has no transmit API. This software boundary does **not** substitute for configuring the Linux SocketCAN interface itself in listen-only mode.
 
-- SQLite: events, starts, trip summaries and post-trip reports.
-- Flat JSONL: streaming temporary telemetry while a trip is active.
-- Parquet/ZSTD: finalized trip telemetry.
-- DuckDB: local historical queries.
-- Future high-rate vibration/audio: bounded ring buffers plus event-triggered retention.
+DBC decoding is lazy/optional. The first real MGO DBC must be produced from passive observation of PKB839, not copied from another model.
 
-## PWA policy
+## Separate Sensor CAN
 
-The application shell may be cached offline. Dynamic `/api/` and WebSocket vehicle data are not served from stale caches. A disconnected UI must show loss/reconnection rather than present old measurements as current.
+SensorHub CAN v1 is independent of factory CAN. Current software defines an 8-byte frame carrying protocol version, value type, channel, flags and a 32-bit value. Channel-to-canonical-signal mapping stays in the vehicle configuration.
 
-## Planned hardware topology
+## Storage/safety separation
 
-```text
-phone/browser
-     |
- Wi-Fi/4G
-     |
-AutoPi TMU CM4
- |           |
-CAN0        CAN1
- |           |
-MGO BFI    Sensor CAN
-             |
-       ESP32 SensorHub
-             |
-      sensors / RS485
-```
-
-Exact MGO4 CAN pins, wire colors and signal IDs remain intentionally undefined until measured on the vehicle.
+Real-time rules and critical alerts do not depend on DuckDB, Parquet, cloud access or AI. Historical analytics can fail without disabling current deterministic warnings.
