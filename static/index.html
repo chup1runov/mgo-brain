@@ -3,34 +3,121 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#101113" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
 <title>MGO Brain</title>
 <style>
-:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark}
-body{margin:0;background:#101113;color:#eee} main{max-width:900px;margin:auto;padding:18px}
-header{display:flex;justify-content:space-between;align-items:end;gap:12px} h1,h2{margin:.2rem 0}
-.label{color:#9ea3aa;font-size:.78rem}.hero,.grid,.health,.faults{display:grid;gap:10px}.hero{grid-template-columns:1fr 1fr;margin:18px 0}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.health{grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0}.faults{grid-template-columns:repeat(2,minmax(0,1fr))}
-.card{background:#191b1f;border:1px solid #30343a;border-radius:13px;padding:14px}.big{font-size:2.2rem;font-weight:700}.value{font-size:1.2rem;margin-top:4px}.status{font-weight:700}.NORMAL{color:#77d58b}.WATCH{color:#e0c25c}.ATTENTION{color:#f39b55}.CRITICAL{color:#ff6262}.UNKNOWN{color:#8c929a}
-button{border:1px solid #3b4149;background:#20242a;color:#eee;border-radius:10px;padding:9px 10px;text-align:left}button.active{border-color:#e0c25c;background:#302b1c}button:hover{cursor:pointer;background:#292e35}.section{margin-top:22px}.small{font-size:.8rem;color:#9ea3aa}#alerts{display:grid;gap:6px}footer{margin-top:24px;color:#777;font-size:.78rem}
-@media(min-width:680px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.health{grid-template-columns:repeat(5,minmax(0,1fr))}.faults{grid-template-columns:repeat(3,minmax(0,1fr))}}
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark;--bg:#101113;--panel:#191b1f;--border:#30343a;--muted:#9ea3aa;--text:#eee;--normal:#77d58b;--watch:#e0c25c;--attention:#f39b55;--critical:#ff6262;--unknown:#8c929a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}button,select{font:inherit}.shell{max-width:1100px;margin:auto;padding:16px 16px 92px}header{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px}h1{font-size:1.55rem;margin:0}h2{font-size:1.12rem;margin:18px 0 10px}.muted,.label{color:var(--muted)}.label{font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}.badge{font-size:.78rem;border:1px solid var(--border);border-radius:99px;padding:5px 9px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric,.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px}.metric .value{font-size:1.35rem;font-weight:650;margin-top:3px}.hero .value{font-size:2.15rem}.hero{grid-column:span 1}.health-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.health-item{background:#15171a;border:1px solid var(--border);border-radius:12px;padding:10px}.status{font-weight:750}.NORMAL{color:var(--normal)}.WATCH{color:var(--watch)}.ATTENTION{color:var(--attention)}.CRITICAL{color:var(--critical)}.UNKNOWN,.UNQUALIFIED{color:var(--unknown)}.view{display:none}.view.active{display:block}.list{display:grid;gap:7px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #282c31;padding:8px 0}.row:last-child{border-bottom:0}.row-main{min-width:0}.small{font-size:.8rem}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}.alert{border-left:3px solid var(--border);padding-left:10px}.alert.CRITICAL{border-left-color:var(--critical)}.alert.ATTENTION{border-left-color:var(--attention)}.alert.WATCH{border-left-color:var(--watch)}.button{border:1px solid #3b4149;background:#20242a;color:#eee;border-radius:10px;padding:9px 11px}.button:hover{cursor:pointer;background:#292e35}.button.active{border-color:var(--watch);background:#302b1c}.button.danger{border-color:#6a3434}.faults{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:7px}.controls{display:flex;gap:8px;flex-wrap:wrap}.compare{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}.compare select{min-width:0;background:#20242a;color:#eee;border:1px solid var(--border);border-radius:9px;padding:8px}.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(16,17,19,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;overflow-x:auto;z-index:10}.nav button{flex:1;min-width:75px;border:0;background:transparent;color:var(--muted);padding:10px 8px calc(10px + env(safe-area-inset-bottom));font-size:.75rem}.nav button.active{color:var(--text);font-weight:700}.offline{color:var(--watch)}.good{color:var(--normal)}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#111317;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.75rem;max-height:420px;overflow:auto}.kpi-note{margin-top:5px;font-size:.72rem;color:var(--muted)}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.health-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.faults{grid-template-columns:repeat(3,minmax(0,1fr))}.nav{left:50%;right:auto;transform:translateX(-50%);max-width:900px;border:1px solid var(--border);border-bottom:0;border-radius:14px 14px 0 0}.nav button{min-width:95px}.shell{padding-bottom:80px}}
 </style>
 </head>
-<body><main>
-<header><div><h1>MGO Brain</h1><div class="label">v0.3 • historical analytics</div></div><div id="overall" class="status">…</div></header>
-<div class="hero"><div class="card"><div class="label">SPEED</div><div class="big"><span id="speed">0</span><small> km/h</small></div></div><div class="card"><div class="label">ENGINE</div><div class="big"><span id="rpm">0</span><small> rpm</small></div></div></div>
-<div class="grid">
-<div class="card"><div class="label">MODE</div><div class="value" id="mode">OFF</div></div><div class="card"><div class="label">COOLANT</div><div class="value" id="coolant">–</div></div><div class="card"><div class="label">OIL</div><div class="value" id="oil">–</div></div><div class="card"><div class="label">OIL PRESSURE</div><div class="value" id="oilp">–</div></div><div class="card"><div class="label">BATTERY</div><div class="value" id="battery">–</div></div><div class="card"><div class="label">CVT</div><div class="value" id="cvt">–</div></div>
+<body><div class="shell">
+<header><div><h1>MGO Brain</h1><div class="muted small">v0.4 • local vehicle console</div></div><div><span id="conn" class="badge">connecting</span></div></header>
+
+<section id="home" class="view active">
+  <div class="grid">
+    <div class="metric hero"><div class="label">Speed</div><div class="value"><span data-sig="vehicle.speed">0</span> <small>km/h</small></div></div>
+    <div class="metric hero"><div class="label">Engine</div><div class="value"><span data-sig="engine.rpm">0</span> <small>rpm</small></div></div>
+    <div class="metric"><div class="label">Mode</div><div class="value" id="mode">OFF</div></div>
+    <div class="metric"><div class="label">Overall</div><div class="value status" id="overall">…</div></div>
+    <div class="metric"><div class="label">Coolant</div><div class="value"><span data-sig="engine.coolant_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label">Oil pressure</div><div class="value"><span data-sig="engine.oil_pressure">–</span> bar</div></div>
+    <div class="metric"><div class="label">Battery</div><div class="value"><span data-sig="electrical.battery_voltage">–</span> V</div></div>
+    <div class="metric"><div class="label">CVT drift</div><div class="value"><span data-sig="transmission.cvt_ratio_deviation">–</span> %</div></div>
+  </div>
+  <h2>Subsystem health</h2><div id="healthHome" class="health-grid"></div>
+  <h2>Active alerts</h2><div id="alertsHome" class="panel list"></div>
+  <h2>Latest trip</h2><div id="latestTrip" class="panel"></div>
+</section>
+
+<section id="engine" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label">RPM</div><div class="value"><span data-sig="engine.rpm">–</span></div></div>
+    <div class="metric"><div class="label">Coolant</div><div class="value"><span data-sig="engine.coolant_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label">Oil temp</div><div class="value"><span data-sig="engine.oil_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label">Oil pressure</div><div class="value"><span data-sig="engine.oil_pressure">–</span> bar</div></div>
+    <div class="metric"><div class="label">Glow current</div><div class="value"><span data-sig="engine.glow_current">–</span> A</div></div>
+    <div class="metric"><div class="label">Starter current</div><div class="value"><span data-sig="engine.starter_current">–</span> A</div></div>
+  </div>
+  <h2>Start history</h2><div id="starts" class="panel list"></div>
+  <h2>Engine baselines</h2><div id="engineBaselines" class="panel list"></div>
+</section>
+
+<section id="cvt" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label">CVT ratio</div><div class="value"><span data-sig="transmission.cvt_ratio">–</span></div></div>
+    <div class="metric"><div class="label">Ratio drift</div><div class="value"><span data-sig="transmission.cvt_ratio_deviation">–</span> %</div></div>
+    <div class="metric"><div class="label">Primary temp</div><div class="value"><span data-sig="transmission.cvt_temp_primary">–</span> °C</div></div>
+    <div class="metric"><div class="label">Secondary temp</div><div class="value"><span data-sig="transmission.cvt_temp_secondary">–</span> °C</div></div>
+  </div>
+  <h2>Historical CVT baseline</h2><div id="cvtBaselines" class="panel list"></div>
+</section>
+
+<section id="electrical" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label">Battery voltage</div><div class="value"><span data-sig="electrical.battery_voltage">–</span> V</div></div>
+    <div class="metric"><div class="label">Battery current</div><div class="value"><span data-sig="electrical.battery_current">–</span> A</div></div>
+    <div class="metric"><div class="label">Battery SoC</div><div class="value"><span data-sig="electrical.battery_soc">–</span> %</div></div>
+    <div class="metric"><div class="label">Alternator</div><div class="value"><span data-sig="electrical.alternator_voltage">–</span> V</div></div>
+  </div>
+  <h2>Electrical baselines</h2><div id="electricalBaselines" class="panel list"></div>
+</section>
+
+<section id="trips" class="view">
+  <div class="panel">
+    <div class="label">Compare trips</div><div class="compare"><select id="tripA"></select><select id="tripB"></select><button class="button" id="compareBtn">Compare</button></div>
+    <div id="compareResult" class="small" style="margin-top:10px"></div>
+  </div>
+  <h2>Trip history</h2><div id="tripList" class="list"></div>
+  <h2>Selected report</h2><div id="tripReport" class="panel muted">Select a trip to view its report.</div>
+</section>
+
+<section id="service" class="view">
+  <h2>Maintenance plan</h2><div id="maintenance" class="list"></div>
+  <div class="panel small muted" style="margin-top:12px">The registry reflects the project’s documented Progress ACT/MGO service intervals. It is not yet tied to a verified live odometer or replacement dates.</div>
+</section>
+
+<section id="lab" class="view">
+  <div class="controls"><button class="button danger" id="clearFaults">Clear simulator faults</button><button class="button" id="refreshLab">Refresh</button></div>
+  <h2>Fault laboratory</h2><div id="faults" class="faults"></div>
+  <h2>Analytics</h2><div id="analytics" class="panel"></div>
+  <h2>All baselines</h2><div id="allBaselines" class="panel list"></div>
+  <h2>Raw live state</h2><pre id="rawState">{}</pre>
+</section>
 </div>
-<section class="section"><h2>Subsystem health</h2><div id="health" class="health"></div></section>
-<section class="section"><h2>Active alerts</h2><div id="alerts"></div></section>
-<section class="section"><h2>Fault laboratory</h2><div class="small">Simulator only. These controls do not operate any real vehicle function.</div><p><button onclick="clearFaults()">Clear all faults</button></p><div id="faults" class="faults"></div></section>
-<footer>Read/observe-first digital-twin prototype. Critical vehicle functions remain independent of MGO Brain.</footer>
+
+<nav class="nav" aria-label="MGO Brain sections">
+  <button data-view="home" class="active">HOME</button><button data-view="engine">ENGINE</button><button data-view="cvt">CVT</button><button data-view="electrical">POWER</button><button data-view="trips">TRIPS</button><button data-view="service">SERVICE</button><button data-view="lab">LAB</button>
+</nav>
+
 <script>
-const $=id=>document.getElementById(id); const val=(s,n)=>s.signals?.[n]?.value;
-function showState(s){$('mode').textContent=s.mode;$('speed').textContent=Math.round(val(s,'vehicle.speed')??0);$('rpm').textContent=Math.round(val(s,'engine.rpm')??0);$('coolant').textContent=(val(s,'engine.coolant_temp')??'–')+' °C';$('oil').textContent=(val(s,'engine.oil_temp')??'–')+' °C';$('oilp').textContent=(val(s,'engine.oil_pressure')??'–')+' bar';$('battery').textContent=(val(s,'electrical.battery_voltage')??'–')+' V';$('cvt').textContent=(val(s,'transmission.cvt_ratio_deviation')??'–')+' %';}
-async function refreshHealth(){try{const x=await(await fetch('/api/v1/health-summary')).json();$('overall').className='status '+x.overall;$('overall').textContent='● '+x.overall;$('health').innerHTML=x.subsystems.map(s=>`<div class="card"><div class="label">${s.subsystem}</div><div class="status ${s.status}">${s.status}</div></div>`).join('');$('alerts').innerHTML=x.active_alerts.length?x.active_alerts.map(a=>`<div class="card"><span class="status ${a.severity}">${a.severity}</span> · ${a.code}<div class="small">${a.message}</div></div>`).join(''):'<div class="small">No active alerts.</div>';}catch{}}
-async function refreshFaults(){const x=await(await fetch('/api/v1/simulator/faults')).json();$('faults').innerHTML=x.faults.map(f=>`<button class="${f.active?'active':''}" onclick="toggleFault('${f.name}',${f.active})"><b>${f.name}</b><div class="small">${f.description}</div></button>`).join('')}
-async function toggleFault(name,active){await fetch(`/api/v1/simulator/faults/${name}/${active?'disable':'enable'}`,{method:'POST'});await refreshFaults();await refreshHealth()}
-async function clearFaults(){await fetch('/api/v1/simulator/faults/clear',{method:'POST'});await refreshFaults();await refreshHealth()}
-const proto=location.protocol==='https:'?'wss':'ws';const ws=new WebSocket(`${proto}://${location.host}/ws/live`);ws.onmessage=e=>showState(JSON.parse(e.data));setInterval(refreshHealth,800);refreshHealth();refreshFaults();
+const $=id=>document.getElementById(id);let lastState={signals:{}},health={},baseline={},trips=[];
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function value(name){return lastState.signals?.[name]?.value}
+function fmt(v,d=1){if(v===null||v===undefined)return '–';if(typeof v==='number')return Number(v).toFixed(d).replace(/\.0$/,'');return String(v)}
+function setSignals(){document.querySelectorAll('[data-sig]').forEach(el=>{const n=el.dataset.sig;el.textContent=fmt(value(n),n==='engine.rpm'?0:1)});$('mode').textContent=lastState.mode||'OFF';$('rawState').textContent=JSON.stringify(lastState,null,2)}
+function statusHtml(x){return `<span class="status ${esc(x)}">${esc(x)}</span>`}
+function renderHealth(){const items=health.subsystems||[];const cards=items.map(x=>`<div class="health-item"><div class="label">${esc(x.subsystem)}</div>${statusHtml(x.status)}${x.reasons?.length?`<div class="small muted">${esc(x.reasons[0])}</div>`:''}</div>`).join('');$('healthHome').innerHTML=cards||'<div class="muted small">No health data.</div>';$('overall').className='value status '+(health.overall||'UNKNOWN');$('overall').textContent=health.overall||'UNKNOWN';const aa=health.active_alerts||[];$('alertsHome').innerHTML=aa.length?aa.map(a=>`<div class="alert ${esc(a.severity)}"><b>${esc(a.code)}</b><div class="small muted">${esc(a.message)}</div></div>`).join(''):'<div class="small muted">No active alerts.</div>'}
+function baselineRow(name){const x=baseline[name];if(!x)return'';const ref=x.reference,roll=x.rolling;return `<div class="row"><div class="row-main"><b>${esc(name)}</b><div class="small muted">reference ${ref?fmt(ref.mean,2)+' · n='+ref.n:'empty'} · rolling ${roll?fmt(roll.mean,2)+' · n='+roll.n:'empty'}</div></div>${statusHtml(x.qualified?'NORMAL':'UNQUALIFIED')}</div>`}
+function renderBaselines(){const engine=['starter_duration_s','min_crank_voltage_v','cranking_rpm','max_coolant_c','max_oil_temp_c','min_oil_pressure_bar'];const cvt=['avg_cvt_ratio_deviation_pct','max_cvt_temp_c'];const electrical=['min_crank_voltage_v','avg_running_voltage_v'];$('engineBaselines').innerHTML=engine.map(baselineRow).join('');$('cvtBaselines').innerHTML=cvt.map(baselineRow).join('');$('electricalBaselines').innerHTML=electrical.map(baselineRow).join('');$('allBaselines').innerHTML=Object.keys(baseline).map(baselineRow).join('')}
+async function json(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error(`${r.status} ${url}`);return r.json()}
+async function refreshCore(){try{[health,baseline]=await Promise.all([json('/api/v1/health-summary'),json('/api/v1/baselines')]);renderHealth();renderBaselines();$('conn').textContent='● live';$('conn').className='badge good'}catch(e){$('conn').textContent='offline';$('conn').className='badge offline'}}
+async function refreshStarts(){try{const x=await json('/api/v1/starts?limit=8');$('starts').innerHTML=x.length?x.map(s=>`<div class="row"><div><b>${new Date(s.started_at).toLocaleString()}</b><div class="small muted">crank ${fmt(s.starter_duration_s,2)} s · min ${fmt(s.min_crank_voltage_v,2)} V · ${s.baseline_eligible?'reference-eligible':'excluded'}</div></div></div>`).join(''):'<div class="muted small">No starts yet.</div>'}catch{}}
+function tripLabel(t){return `#${t.id} · ${new Date(t.started_at).toLocaleString()} · ${fmt(t.distance_km,1)} km`}
+async function refreshTrips(){try{trips=await json('/api/v1/trips?limit=30');$('tripList').innerHTML=trips.length?trips.map(t=>`<button class="panel button" onclick="showReport(${t.id})"><div><b>${esc(tripLabel(t))}</b></div><div class="small muted">${fmt(t.avg_speed_kmh,1)} km/h avg · ${esc(t.diagnostic_status||'NORMAL')} · ${t.baseline_eligible?'baseline':'excluded'}</div></button>`).join(''):'<div class="panel muted small">No completed trips.</div>';const opts=trips.map(t=>`<option value="${t.id}">${esc(tripLabel(t))}</option>`).join('');$('tripA').innerHTML=opts;$('tripB').innerHTML=opts;if(trips.length>1)$('tripB').selectedIndex=1;if(trips[0]){$('latestTrip').innerHTML=`<b>${esc(tripLabel(trips[0]))}</b><div class="small muted">${fmt(trips[0].avg_speed_kmh,1)} km/h avg · max coolant ${fmt(trips[0].max_coolant_c,1)} °C</div>`}else $('latestTrip').innerHTML='<span class="muted small">No trips yet.</span>'}catch{}}
+async function showReport(id){try{const r=await json(`/api/v1/trips/${id}/report`);$('tripReport').innerHTML=`${statusHtml(r.status)}<div class="small muted">${r.eligible_for_baseline?'Eligible for healthy baseline':'Excluded from healthy baseline'}</div><div class="list" style="margin-top:8px">${(r.findings||[]).map(f=>`<div>${esc(f)}</div>`).join('')}</div>${r.anomalies?.length?`<pre>${esc(JSON.stringify(r.anomalies,null,2))}</pre>`:''}`;switchView('trips')}catch(e){$('tripReport').textContent='Report unavailable.'}}
+async function compareTrips(){const a=$('tripA').value,b=$('tripB').value;if(!a||!b)return;try{const x=await json(`/api/v1/analytics/compare?trip_a=${a}&trip_b=${b}`);const keys=['max_coolant_c','min_oil_pressure_bar','avg_running_voltage_v','avg_cvt_ratio_deviation_pct','max_cvt_temp_c'];$('compareResult').innerHTML=keys.map(k=>{const d=x.comparison[k];return `<div class="row"><span>${esc(k)}</span><span>${fmt(d?.delta,2)} (${fmt(d?.delta_pct,1)}%)</span></div>`}).join('')}catch(e){$('compareResult').textContent='Comparison unavailable.'}}
+async function refreshService(){try{const x=await json('/api/v1/spec/maintenance');$('maintenance').innerHTML=x.items.map(i=>`<div class="panel row"><div><b>${esc(i.component)}</b><div class="small muted">${esc(i.source)}</div></div><div>${i.distance_km?i.distance_km+' km':''}${i.distance_km&&i.time_months?' / ':''}${i.time_months?i.time_months+' mo':''}</div></div>`).join('')}catch{}}
+async function refreshLab(){try{const [f,a]=await Promise.all([json('/api/v1/simulator/faults'),json('/api/v1/analytics/summary')]);$('faults').innerHTML=f.faults.map(x=>`<button class="button ${x.active?'active':''}" onclick="toggleFault('${x.name}',${x.active})"><b>${esc(x.name)}</b><div class="small muted">${esc(x.description)}</div></button>`).join('');$('analytics').innerHTML=`<div class="row"><span>DuckDB</span><b>${a.available?'available':'fallback mode'}</b></div><div class="row"><span>Parquet trips</span><b>${a.trip_files}</b></div><div class="row"><span>Samples</span><b>${a.samples??'–'}</b></div>${a.aggregates&&Object.keys(a.aggregates).length?`<pre>${esc(JSON.stringify(a.aggregates,null,2))}</pre>`:''}`}catch{}}
+async function toggleFault(name,active){await fetch(`/api/v1/simulator/faults/${name}/${active?'disable':'enable'}`,{method:'POST'});refreshLab();refreshCore()}
+async function clearFaults(){await fetch('/api/v1/simulator/faults/clear',{method:'POST'});refreshLab();refreshCore()}
+function switchView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));localStorage.setItem('mgo-view',id);if(id==='trips')refreshTrips();if(id==='service')refreshService();if(id==='lab')refreshLab()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));$('compareBtn').onclick=compareTrips;$('clearFaults').onclick=clearFaults;$('refreshLab').onclick=refreshLab;
+const saved=localStorage.getItem('mgo-view');if(saved&&$(saved))switchView(saved);
+const proto=location.protocol==='https:'?'wss':'ws';let ws;function connect(){ws=new WebSocket(`${proto}://${location.host}/ws/live`);ws.onopen=()=>{$('conn').textContent='● live';$('conn').className='badge good'};ws.onmessage=e=>{lastState=JSON.parse(e.data);setSignals()};ws.onclose=()=>{ $('conn').textContent='reconnecting';$('conn').className='badge offline';setTimeout(connect,1500)}}connect();
+setInterval(refreshCore,1000);setInterval(refreshStarts,5000);setInterval(refreshTrips,5000);refreshCore();refreshStarts();refreshTrips();refreshService();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js').catch(()=>{}))}
 </script>
-</main></body></html>
+</body></html>

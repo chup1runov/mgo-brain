@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.4.0", lifespan=lifespan)\napp.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
 @app.get("/")
@@ -31,10 +31,10 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.3.0", "source": "simulator", "analytics": service.analytics.available()}
+    return {"status": "ok", "version": "0.4.0", "source": "simulator", "analytics": service.analytics.available()}
 
 
-@app.get("/api/v1/state")
+@app.get("/manifest.webmanifest")\ndef manifest():\n    return FileResponse(ROOT / "static" / "manifest.webmanifest", media_type="application/manifest+json")\n\n\n@app.get("/service-worker.js")\ndef service_worker():\n    return FileResponse(ROOT / "static" / "service-worker.js", media_type="application/javascript")\n\n\n@app.get("/api/v1/state")
 def state():
     return service.state
 
@@ -57,7 +57,7 @@ def trip_report(trip_id: int):
     return report
 
 
-@app.get("/api/v1/starts")
+@app.get("/api/v1/reports")\ndef reports(limit: int = 100):\n    return service.store.list_reports(min(max(limit, 1), 500))\n\n\n@app.get("/api/v1/starts")
 def starts(limit: int = 100):
     return service.store.list_starts(min(max(limit, 1), 500))
 
