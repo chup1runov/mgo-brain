@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Mapping
+
+
+@dataclass(frozen=True)
+class RuntimeSettings:
+    root: Path
+    data_dir: Path
+    config_dir: Path
+    host: str = "0.0.0.0"
+    port: int = 8080
+
+    @property
+    def sources_path(self) -> Path:
+        return self.config_dir / "sources.json"
+
+    @property
+    def signal_registry_path(self) -> Path:
+        return self.config_dir / "signals-v1.json"
+
+    @property
+    def maintenance_path(self) -> Path:
+        return self.config_dir / "maintenance-plan.json"
+
+    @classmethod
+    def from_env(
+        cls,
+        root: str | Path,
+        environ: Mapping[str, str] | None = None,
+    ) -> "RuntimeSettings":
+        env = os.environ if environ is None else environ
+        root_path = Path(root).resolve()
+        data_dir = Path(env.get("MGO_BRAIN_DATA_DIR", str(root_path / "data"))).expanduser()
+        config_dir = Path(env.get("MGO_BRAIN_CONFIG_DIR", str(root_path / "config"))).expanduser()
+        host = env.get("MGO_BRAIN_HOST", "0.0.0.0")
+        port = int(env.get("MGO_BRAIN_PORT", "8080"))
+        if not 1 <= port <= 65535:
+            raise ValueError("MGO_BRAIN_PORT must be between 1 and 65535")
+        return cls(
+            root=root_path,
+            data_dir=data_dir.resolve(),
+            config_dir=config_dir.resolve(),
+            host=host,
+            port=port,
+        )
+
+    def ensure_runtime_dirs(self) -> None:
+        self.data_dir.mkdir(parents=True, exist_ok=True)

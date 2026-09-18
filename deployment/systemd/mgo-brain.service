@@ -1,0 +1,24 @@
+[Unit]
+Description=MGO Brain vehicle telemetry and diagnostics
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=mgo-brain
+Group=mgo-brain
+WorkingDirectory=/opt/mgo-brain
+EnvironmentFile=-/etc/mgo-brain/mgo-brain.env
+ExecStart=/opt/mgo-brain/.venv/bin/mgo-brain
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/mgo-brain
+ReadOnlyPaths=/etc/mgo-brain
+
+[Install]
+WantedBy=multi-user.target

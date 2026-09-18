@@ -10,17 +10,21 @@ from fastapi.staticfiles import StaticFiles
 
 from .faults import FaultScenario
 from .service import MGOBrainService
+from .runtime import RuntimeSettings
+from .doctor import run_doctor
 from .survey import SurveyAnalyzeRequest, SurveyParseRequest, analyze_text, parse_candump, sample_pair, summarize_records
 from .commissioning_models import SurveySessionCreateRequest
 from .survey_sessions import SurveySessionStore
 
 ROOT = Path(__file__).resolve().parent.parent
+settings = RuntimeSettings.from_env(ROOT)
+settings.ensure_runtime_dirs()
 service = MGOBrainService(
-    ROOT / "data",
-    source_config_path=ROOT / "config" / "sources.json",
-    signal_registry_path=ROOT / "config" / "signals-v1.json",
+    settings.data_dir,
+    source_config_path=settings.sources_path,
+    signal_registry_path=settings.signal_registry_path,
 )
-survey_sessions = SurveySessionStore(ROOT / "data" / "surveys")
+survey_sessions = SurveySessionStore(settings.data_dir / "surveys")
 
 
 @asynccontextmanager
@@ -30,7 +34,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.2", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.3", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -43,9 +47,11 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.2",
+        "version": "0.5.3",
         "source": service.source.name,
         "analytics": service.analytics.available(),
+        "data_dir": str(settings.data_dir),
+        "config_dir": str(settings.config_dir),
     }
 
 
@@ -62,6 +68,11 @@ def service_worker():
 @app.get("/api/v1/state")
 def state():
     return service.state
+
+
+@app.get("/api/v1/system/doctor")
+def system_doctor():
+    return run_doctor(settings)
 
 
 @app.get("/api/v1/sources")
@@ -190,13 +201,13 @@ def compare_trips(trip_a: int, trip_b: int):
 @app.get("/api/v1/spec/signals")
 def signal_spec():
     import json
-    return json.loads((ROOT / "config" / "signals-v1.json").read_text(encoding="utf-8"))
+    return json.loads(settings.signal_registry_path.read_text(encoding="utf-8"))
 
 
 @app.get("/api/v1/spec/maintenance")
 def maintenance_spec():
     import json
-    return json.loads((ROOT / "config" / "maintenance-plan.json").read_text(encoding="utf-8"))
+    return json.loads(settings.maintenance_path.read_text(encoding="utf-8"))
 
 
 @app.get("/api/v1/simulator/faults")
@@ -246,7 +257,7 @@ async def live(websocket: WebSocket):
 
 
 def run():
-    uvicorn.run("mgo_brain.main:app", host="0.0.0.0", port=8080, reload=False)
+    uvicorn.run("mgo_brain.main:app", host=settings.host, port=settings.port, reload=False)
 
 
 if __name__ == "__main__":

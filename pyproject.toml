@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mgo-brain"
-version = "0.5.2"
+version = "0.5.3"
 description = "Local telemetry, diagnostics and digital-twin prototype for Microcar M.Go / Progress ACT"
 requires-python = ">=3.11"
 dependencies = [
@@ -34,6 +34,8 @@ mgo-survey = "mgo_brain.survey_cli:main"
 mgo-can-record = "mgo_brain.record_cli:main"
 mgo-can-replay = "mgo_brain.replay_cli:main"
 mgo-survey-session = "mgo_brain.survey_session_cli:main"
+mgo-doctor = "mgo_brain.doctor_cli:main"
+mgo-backup = "mgo_brain.backup_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["mgo_brain*"]
