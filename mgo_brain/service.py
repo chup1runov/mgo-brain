@@ -14,6 +14,10 @@ from .models import AIContext, Event, Severity, TripSummary, VehicleState
 from .reports import PostTripReportEngine
 from .rules import RulesEngine
 from .simulator import MGOSimulator
+from .sources.aggregator import StateAggregator
+from .sources.base import SourceAdapter
+from .sources.config import RuntimeSourceConfig, SourceEntry, SourceFactory, load_preferred_sources, load_source_config
+from .sources.factory import register_standard_hardware_builders
 from .store import Store
 
 
@@ -26,9 +30,29 @@ SEVERITY_RANK = {
 
 
 class MGOBrainService:
-    def __init__(self, data_dir: Path):
+    def __init__(
+        self,
+        data_dir: Path,
+        *,
+        source_adapter: SourceAdapter | None = None,
+        source_config_path: Path | None = None,
+        signal_registry_path: Path | None = None,
+    ):
         self.store = Store(data_dir)
-        self.source = MGOSimulator(hz=5)
+        self.simulator = MGOSimulator(hz=5)
+        self.source_config = self._load_runtime_config(source_config_path)
+        self.simulator_active = any(x.enabled and x.type == "simulator" for x in self.source_config.sources)
+
+        factory = SourceFactory(simulator=self.simulator)
+        register_standard_hardware_builders(factory)
+        self.source = source_adapter or factory.build(self.source_config)
+
+        preferred = load_preferred_sources(signal_registry_path) if signal_registry_path else {}
+        self.aggregator = StateAggregator(
+            stale_after_s=self.source_config.stale_after_s,
+            preferred_sources=preferred,
+        )
+
         self.rules = RulesEngine()
         self.alerts = AlertManager(clear_after_s=1.0)
         self.health = HealthEngine()
@@ -45,6 +69,15 @@ class MGOBrainService:
         self._trip_worst_severity = Severity.INFO
         self._rebuild_baselines()
 
+    @staticmethod
+    def _load_runtime_config(path: Path | None) -> RuntimeSourceConfig:
+        if path is not None and Path(path).exists():
+            return load_source_config(path)
+        return RuntimeSourceConfig(
+            stale_after_s=3.0,
+            sources=(SourceEntry(type="simulator", enabled=True, options={}),),
+        )
+
     def _rebuild_baselines(self):
         self.baselines.rebuild(self.store.list_starts(10000), self.store.list_trips(10000))
 
@@ -60,9 +93,11 @@ class MGOBrainService:
             except asyncio.CancelledError:
                 pass
             self.task = None
+        await self.source.close()
 
     async def _loop(self):
-        async for state in self.source.stream():
+        async for update in self.source.stream():
+            state = self.aggregator.apply(update)
             self.process_state(state)
             await self._publish(state)
 
@@ -200,26 +235,43 @@ class MGOBrainService:
             "mode": self.state.mode,
             "active_alerts": [a.model_dump(mode="json") for a in active],
             "baseline": self.baselines.summary(),
-            "simulator_faults": self.source.faults.names(),
+            "simulator_faults": self.simulator.faults.names() if self.simulator_active else [],
         })
         return summary
+
+    def source_status(self) -> dict[str, Any]:
+        return {
+            "adapter": self.source.name,
+            "stale_after_s": self.source_config.stale_after_s,
+            "sources": [
+                {"type": x.type, "enabled": x.enabled, "options": x.options or {}}
+                for x in self.source_config.sources
+            ],
+            "simulator_active": self.simulator_active,
+        }
 
     def alert_snapshot(self):
         return self.alerts.snapshot()
 
     def fault_catalog(self):
-        return self.source.faults.catalog()
+        return self.simulator.faults.catalog() if self.simulator_active else []
 
     def enable_fault(self, fault: FaultScenario | str):
-        self.source.faults.enable(fault)
+        if not self.simulator_active:
+            raise RuntimeError("Simulator source is not active")
+        self.simulator.faults.enable(fault)
         return self.fault_catalog()
 
     def disable_fault(self, fault: FaultScenario | str):
-        self.source.faults.disable(fault)
+        if not self.simulator_active:
+            raise RuntimeError("Simulator source is not active")
+        self.simulator.faults.disable(fault)
         return self.fault_catalog()
 
     def clear_faults(self):
-        self.source.faults.clear()
+        if not self.simulator_active:
+            return []
+        self.simulator.faults.clear()
         return self.fault_catalog()
 
     def analytics_summary(self):

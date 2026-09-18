@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .alerts import AlertRecord
-from .models import HealthItem, Severity, VehicleState
+from .models import HealthItem, Severity, SignalQuality, VehicleState
 
 
 STATUS_ORDER = {"UNKNOWN": -1, "NORMAL": 0, "WATCH": 1, "ATTENTION": 2, "CRITICAL": 3}
@@ -35,15 +35,32 @@ SEVERITY_STATUS = {
     Severity.CRITICAL: "CRITICAL",
 }
 
+UNUSABLE_QUALITY = {SignalQuality.STALE, SignalQuality.MISSING, SignalQuality.INVALID}
+
+
+def _usable(state: VehicleState, name: str) -> bool:
+    reading = state.signals.get(name)
+    return (
+        reading is not None
+        and reading.value is not None
+        and reading.quality not in UNUSABLE_QUALITY
+    )
+
 
 class HealthEngine:
     def evaluate(self, state: VehicleState, alerts: list[AlertRecord]) -> list[HealthItem]:
         items: list[HealthItem] = []
         for subsystem, codes in SUBSYSTEM_CODES.items():
-            ready = all(name in state.signals and state.signals[name].value is not None for name in READINESS_SIGNALS[subsystem])
+            ready = all(_usable(state, name) for name in READINESS_SIGNALS[subsystem])
             relevant = [a for a in alerts if a.code in codes]
             if not ready and not relevant:
-                items.append(HealthItem(subsystem=subsystem, status="UNKNOWN", reasons=["Required sensor set is not available yet."]))
+                items.append(
+                    HealthItem(
+                        subsystem=subsystem,
+                        status="UNKNOWN",
+                        reasons=["Required live sensor set is missing or stale."],
+                    )
+                )
                 continue
 
             status = "NORMAL"
@@ -53,6 +70,10 @@ class HealthEngine:
                 if STATUS_ORDER[candidate] > STATUS_ORDER[status]:
                     status = candidate
                 reasons.append(f"{alert.code}: {alert.message}")
+            if not ready:
+                reasons.append("One or more required sensor signals are stale or unavailable.")
+                if STATUS_ORDER["WATCH"] > STATUS_ORDER[status]:
+                    status = "WATCH"
             items.append(HealthItem(subsystem=subsystem, status=status, reasons=reasons))
         return items
 

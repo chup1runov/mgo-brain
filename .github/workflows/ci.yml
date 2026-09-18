@@ -31,3 +31,25 @@ jobs:
 
       - name: Test
         run: pytest -q
+
+  hardware-optional:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install hardware extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev,analytics,hardware]'
+
+      - name: Import hardware dependencies
+        run: python -c "import can, cantools, pymodbus, serial; import mgo_brain.sources.can, mgo_brain.sources.dbc, mgo_brain.sources.modbus"
+
+      - name: Hardware-abstraction tests
+        run: pytest -q tests/test_v05_sources.py

@@ -12,7 +12,11 @@ from .faults import FaultScenario
 from .service import MGOBrainService
 
 ROOT = Path(__file__).resolve().parent.parent
-service = MGOBrainService(ROOT / "data")
+service = MGOBrainService(
+    ROOT / "data",
+    source_config_path=ROOT / "config" / "sources.json",
+    signal_registry_path=ROOT / "config" / "signals-v1.json",
+)
 
 
 @asynccontextmanager
@@ -22,7 +26,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -33,7 +37,12 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.4.0", "source": "simulator", "analytics": service.analytics.available()}
+    return {
+        "status": "ok",
+        "version": "0.5.0",
+        "source": service.source.name,
+        "analytics": service.analytics.available(),
+    }
 
 
 @app.get("/manifest.webmanifest")
@@ -49,6 +58,11 @@ def service_worker():
 @app.get("/api/v1/state")
 def state():
     return service.state
+
+
+@app.get("/api/v1/sources")
+def sources():
+    return service.source_status()
 
 
 @app.get("/api/v1/events")
@@ -126,25 +140,29 @@ def maintenance_spec():
 
 @app.get("/api/v1/simulator/faults")
 def simulator_faults():
-    return {"faults": service.fault_catalog()}
+    return {"faults": service.fault_catalog(), "active": service.simulator_active}
 
 
 @app.post("/api/v1/simulator/faults/{fault_name}/enable")
 def enable_fault(fault_name: str):
     try:
         FaultScenario(fault_name)
+        return {"faults": service.enable_fault(fault_name)}
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown fault scenario: {fault_name}") from exc
-    return {"faults": service.enable_fault(fault_name)}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.post("/api/v1/simulator/faults/{fault_name}/disable")
 def disable_fault(fault_name: str):
     try:
         FaultScenario(fault_name)
+        return {"faults": service.disable_fault(fault_name)}
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown fault scenario: {fault_name}") from exc
-    return {"faults": service.disable_fault(fault_name)}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.post("/api/v1/simulator/faults/clear")

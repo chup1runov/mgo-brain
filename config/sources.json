@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "stale_after_s": 3.0,
+  "sources": [
+    {
+      "type": "simulator",
+      "enabled": true,
+      "options": {}
+    }
+  ]
+}
