@@ -14,7 +14,7 @@
 </style>
 </head>
 <body><div class="shell">
-<header><div><h1>MGO Brain</h1><div class="muted small">v0.5.4 • display / kiosk</div></div><div><span id="conn" class="badge">connecting</span></div></header>
+<header><div><h1>MGO Brain</h1><div class="muted small">v0.5.5 • signal discovery</div></div><div><span id="conn" class="badge">connecting</span></div></header>
 
 <section id="home" class="view active">
   <div class="grid">
@@ -111,6 +111,21 @@
       <pre id="surveyDbc">No DBC draft yet.</pre>
     </details>
   </div>
+
+  <h2>Numeric Signal Discovery</h2>
+  <div class="panel">
+    <div class="controls">
+      <input id="numericLabel" class="survey-input" value="vehicle_speed_gps" aria-label="Numeric signal label" />
+      <button class="button" id="numericDemo">Load numeric demo</button>
+      <button class="button" id="numericAnalyze">Analyze numeric signal</button>
+    </div>
+    <div class="survey-grid" style="margin-top:10px">
+      <div><div class="label">CAN candump</div><textarea id="numericCan" spellcheck="false" placeholder="Timed candump from a varied drive"></textarea></div>
+      <div><div class="label">Reference CSV: timestamp,value</div><textarea id="numericRef" spellcheck="false" placeholder="GPS/reference time series"></textarea></div>
+    </div>
+    <div id="numericSummary" class="small muted" style="margin-top:10px">No numeric analysis yet.</div>
+    <div id="numericCandidates" class="list" style="margin-top:10px"></div>
+  </div>
   <h2>Saved survey sessions</h2>
   <div id="surveySessions" class="list"></div>
   <h2>Raw live state</h2><pre id="rawState">{}</pre>
@@ -175,10 +190,14 @@ async function refreshSurveySessions(){
   }catch(e){$('surveySessions').innerHTML='<div class="small muted">Unable to load sessions.</div>'}
 }
 
+
+async function loadNumericDemo(){try{const x=await json('/api/v1/survey/numeric/sample');$('numericCan').value=x.can_log;$('numericRef').value=x.reference_csv;$('numericLabel').value=x.label;$('numericSummary').textContent='Numeric demo loaded.'}catch(e){$('numericSummary').textContent='Unable to load numeric demo.'}}
+async function analyzeNumeric(){const can_log=$('numericCan').value,reference_csv=$('numericRef').value,label=$('numericLabel').value||'numeric_signal';if(!can_log.trim()||!reference_csv.trim()){$('numericSummary').textContent='Load both CAN and reference data first.';return}try{$('numericSummary').textContent='Analyzing…';const x=await json('/api/v1/survey/numeric',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({can_log,reference_csv,label,max_time_gap_s:0.25,min_samples:12,max_candidates:30})});$('numericSummary').textContent=`reference ${x.reference_samples} samples · CAN ${x.can_frames} frames · candidates ${x.candidates.length}`;$('numericCandidates').innerHTML=x.candidates.length?x.candidates.slice(0,20).map((c,i)=>`<div class="panel candidate"><b>#${i+1} ${esc(c.id_hex)}</b><span class="status ${c.r2>0.95?'NORMAL':'UNKNOWN'}">R² ${fmt(c.r2,3)}</span><div class="changes">${esc(c.field)} · ${esc(c.hypothesis)} · score ${fmt(c.score,3)}</div></div>`).join(''):'<div class="small muted">No numeric candidates found.</div>'}catch(e){$('numericSummary').textContent='Numeric analysis failed: '+e.message}}
+
 async function toggleFault(name,active){await fetch(`/api/v1/simulator/faults/${name}/${active?'disable':'enable'}`,{method:'POST'});refreshLab();refreshCore()}
 async function clearFaults(){await fetch('/api/v1/simulator/faults/clear',{method:'POST'});refreshLab();refreshCore()}
 function switchView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));localStorage.setItem('mgo-view',id);if(id==='trips')refreshTrips();if(id==='service')refreshService();if(id==='lab'){refreshLab();refreshSurveySessions()}}
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));$('compareBtn').onclick=compareTrips;$('clearFaults').onclick=clearFaults;$('refreshLab').onclick=refreshLab;$('surveyDemo').onclick=loadSurveyDemo;$('surveyAnalyze').onclick=analyzeSurvey;$('surveySave').onclick=saveSurveySession;
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));$('compareBtn').onclick=compareTrips;$('clearFaults').onclick=clearFaults;$('refreshLab').onclick=refreshLab;$('surveyDemo').onclick=loadSurveyDemo;$('surveyAnalyze').onclick=analyzeSurvey;$('surveySave').onclick=saveSurveySession;$('numericDemo').onclick=loadNumericDemo;$('numericAnalyze').onclick=analyzeNumeric;
 const saved=localStorage.getItem('mgo-view');if(saved&&$(saved))switchView(saved);
 const proto=location.protocol==='https:'?'wss':'ws';let ws;function connect(){ws=new WebSocket(`${proto}://${location.host}/ws/live`);ws.onopen=()=>{$('conn').textContent='● live';$('conn').className='badge good'};ws.onmessage=e=>{lastState=JSON.parse(e.data);setSignals()};ws.onclose=()=>{ $('conn').textContent='reconnecting';$('conn').className='badge offline';setTimeout(connect,1500)}}connect();
 setInterval(refreshCore,1000);setInterval(refreshStarts,5000);setInterval(refreshTrips,5000);refreshCore();refreshStarts();refreshTrips();refreshService();refreshSurveySessions();

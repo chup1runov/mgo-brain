@@ -15,6 +15,7 @@ from .doctor import run_doctor
 from .survey import SurveyAnalyzeRequest, SurveyParseRequest, analyze_text, parse_candump, sample_pair, summarize_records
 from .commissioning_models import SurveySessionCreateRequest
 from .survey_sessions import SurveySessionStore
+from .numeric_discovery import NumericDiscoveryRequest, discover_numeric_from_text, make_numeric_demo
 
 ROOT = Path(__file__).resolve().parent.parent
 settings = RuntimeSettings.from_env(ROOT)
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.4", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.5", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -47,7 +48,7 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.4",
+        "version": "0.5.5",
         "source": service.source.name,
         "analytics": service.analytics.available(),
         "data_dir": str(settings.data_dir),
@@ -101,6 +102,23 @@ def survey_analyze(request: SurveyAnalyzeRequest):
         request.baseline,
         request.action,
         label=request.label,
+        max_candidates=request.max_candidates,
+    )
+
+
+@app.get("/api/v1/survey/numeric/sample")
+def numeric_discovery_sample():
+    return make_numeric_demo()
+
+
+@app.post("/api/v1/survey/numeric")
+def numeric_discovery(request: NumericDiscoveryRequest):
+    return discover_numeric_from_text(
+        request.can_log,
+        request.reference_csv,
+        label=request.label,
+        max_time_gap_s=request.max_time_gap_s,
+        min_samples=request.min_samples,
         max_candidates=request.max_candidates,
     )
 
