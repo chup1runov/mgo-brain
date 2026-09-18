@@ -11,6 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from .faults import FaultScenario
 from .service import MGOBrainService
 from .survey import SurveyAnalyzeRequest, SurveyParseRequest, analyze_text, parse_candump, sample_pair, summarize_records
+from .commissioning_models import SurveySessionCreateRequest
+from .survey_sessions import SurveySessionStore
 
 ROOT = Path(__file__).resolve().parent.parent
 service = MGOBrainService(
@@ -18,6 +20,7 @@ service = MGOBrainService(
     source_config_path=ROOT / "config" / "sources.json",
     signal_registry_path=ROOT / "config" / "signals-v1.json",
 )
+survey_sessions = SurveySessionStore(ROOT / "data" / "surveys")
 
 
 @asynccontextmanager
@@ -27,7 +30,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.1", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.2", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -40,7 +43,7 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.1",
+        "version": "0.5.2",
         "source": service.source.name,
         "analytics": service.analytics.available(),
     }
@@ -89,6 +92,38 @@ def survey_analyze(request: SurveyAnalyzeRequest):
         label=request.label,
         max_candidates=request.max_candidates,
     )
+
+
+@app.get("/api/v1/survey/sessions")
+def survey_session_list(limit: int = 100):
+    return survey_sessions.list(min(max(limit, 1), 500))
+
+
+@app.post("/api/v1/survey/sessions")
+def survey_session_create(request: SurveySessionCreateRequest):
+    return survey_sessions.create(
+        label=request.label,
+        baseline=request.baseline,
+        action=request.action,
+        notes=request.notes,
+        max_candidates=request.max_candidates,
+    )
+
+
+@app.get("/api/v1/survey/sessions/{session_id}")
+def survey_session_get(session_id: str):
+    item = survey_sessions.get(session_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Survey session not found")
+    return item
+
+
+@app.get("/api/v1/survey/sessions/{session_id}/files/{kind}")
+def survey_session_file(session_id: str, kind: str):
+    path = survey_sessions.file_path(session_id, kind)
+    if path is None:
+        raise HTTPException(status_code=404, detail="Survey session file not found")
+    return FileResponse(path)
 
 
 @app.get("/api/v1/events")
