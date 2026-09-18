@@ -16,7 +16,7 @@ MGO Brain should combine factory signals, added sensors, trip/service history an
 
 ## Current software state
 
-Current release: `v0.1.0`.
+Current release: `v0.2.0`.
 
 Working features:
 
@@ -34,6 +34,11 @@ Working features:
 - WebSocket live telemetry;
 - minimal dashboard;
 - AI-context endpoint.
+- nine fault-injection scenarios;
+- ACTIVE → CLEARED alert lifecycle;
+- subsystem health engine for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
+- fault-laboratory API and dashboard controls;
+- 12 automated tests covering v0.1 core + v0.2 fault/health behavior.
 
 ## Hardware direction
 
@@ -59,13 +64,15 @@ Planned topology:
 
 ## Immediate software priority
 
-Continue with v0.2 before physical vehicle survey:
+Continue with v0.3 before physical vehicle survey:
 
-1. fault-injection simulator;
-2. health-engine state model;
-3. explicit alert lifecycle (active/cleared/acknowledged later);
-4. automated tests for fault scenarios;
-5. expand dashboard around ENGINE/CVT/ELECTRICAL status.
+1. Parquet trip telemetry;
+2. DuckDB local analytics;
+3. reference + rolling baselines;
+4. baseline qualification period;
+5. trend/anomaly scoring;
+6. compare-trip API;
+7. post-trip report.
 
 ## Deferred physical milestone
 

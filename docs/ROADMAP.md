@@ -1,6 +1,6 @@
 # MGO Brain Roadmap
 
-## v0.1.0 — Software foundation (current)
+## v0.1.0 — Software foundation
 
 - [x] Canonical signal model.
 - [x] 80-signal registry.
@@ -14,18 +14,20 @@
 - [x] AI-context endpoint.
 - [x] CI and Docker packaging.
 
-## v0.2 — Fault and health simulator
+## v0.2.0 — Fault and health simulator (current)
 
-- [ ] Fault injection framework.
-- [ ] Weak-battery scenario.
-- [ ] Starter degradation scenario.
-- [ ] Glow-plug / preheat anomaly scenario.
-- [ ] Alternator under/over-voltage scenarios.
-- [ ] Oil-pressure failure scenarios.
-- [ ] Cooling over-temperature scenarios.
-- [ ] CVT drift/over-temperature scenarios.
-- [ ] Subsystem health model: ENGINE / CVT / ELECTRICAL / TYRES / BRAKES.
-- [ ] Rule persistence/clear logic rather than only event de-duplication.
+- [x] Fault injection framework.
+- [x] Weak-battery scenario.
+- [x] Starter degradation scenario.
+- [x] Glow-plug / preheat anomaly scenario.
+- [x] Alternator under/over-voltage scenarios.
+- [x] Oil-pressure failure scenarios.
+- [x] Cooling over-temperature scenarios.
+- [x] CVT drift/over-temperature scenarios.
+- [x] Subsystem health model: ENGINE / CVT / ELECTRICAL / TYRES / BRAKES.
+- [x] Explicit ACTIVE → CLEARED alert lifecycle.
+- [x] Fault-laboratory API and dashboard controls.
+- [x] Automated fault-scenario tests.
 
 ## v0.3 — Historical analytics
 

@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 
+from .faults import FaultScenario
 from .service import MGOBrainService
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -20,7 +21,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.2.0", lifespan=lifespan)
 
 
 @app.get("/")
@@ -30,7 +31,7 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.1.0", "source": "simulator"}
+    return {"status": "ok", "version": "0.2.0", "source": "simulator"}
 
 
 @app.get("/api/v1/state")
@@ -53,6 +54,11 @@ def starts(limit: int = 100):
     return service.store.list_starts(min(max(limit, 1), 500))
 
 
+@app.get("/api/v1/alerts")
+def alerts():
+    return service.alert_snapshot()
+
+
 @app.get("/api/v1/health-summary")
 def health_summary():
     return service.health_summary()
@@ -73,6 +79,34 @@ def signal_spec():
 def maintenance_spec():
     import json
     return json.loads((ROOT / "config" / "maintenance-plan.json").read_text(encoding="utf-8"))
+
+
+@app.get("/api/v1/simulator/faults")
+def simulator_faults():
+    return {"faults": service.fault_catalog()}
+
+
+@app.post("/api/v1/simulator/faults/{fault_name}/enable")
+def enable_fault(fault_name: str):
+    try:
+        FaultScenario(fault_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown fault scenario: {fault_name}") from exc
+    return {"faults": service.enable_fault(fault_name)}
+
+
+@app.post("/api/v1/simulator/faults/{fault_name}/disable")
+def disable_fault(fault_name: str):
+    try:
+        FaultScenario(fault_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown fault scenario: {fault_name}") from exc
+    return {"faults": service.disable_fault(fault_name)}
+
+
+@app.post("/api/v1/simulator/faults/clear")
+def clear_faults():
+    return {"faults": service.clear_faults()}
 
 
 @app.websocket("/ws/live")
