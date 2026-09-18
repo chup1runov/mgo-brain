@@ -13,7 +13,7 @@ Initial hardware integrations are therefore read-only:
 - independent add-on sensors for temperatures, pressures, vibration and power telemetry;
 - local deterministic critical alarms independent of cloud/AI availability.
 
-AI is an explanatory and analytical layer, not the sole safety mechanism.
+AI is explanatory/analytical, not the sole safety mechanism. Historical analytics are also isolated from the real-time alert path.
 
 ## Logical layers
 
@@ -34,10 +34,18 @@ VehicleState + state machine
         +--> Trip detector  --> TripSummary + telemetry
         |
         v
-Rules + baseline/anomaly engine
+Deterministic rules --> Alert lifecycle --> Subsystem health
+        |
+        +------------------------ real-time safety/diagnostic path
         |
         v
-SQLite metadata + Parquet/DuckDB history
+Healthy reference baseline + rolling baseline
+        |
+        v
+SQLite summaries/reports + Parquet/ZSTD telemetry
+        |
+        v
+DuckDB historical analytics
         |
         +--> REST API
         +--> WebSocket live state
@@ -49,8 +57,6 @@ SQLite metadata + Parquet/DuckDB history
 
 Consumers do not depend on the physical source. A signal is normalized before diagnostics or UI use.
 
-Example:
-
 ```json
 {
   "value": 82.4,
@@ -61,7 +67,27 @@ Example:
 }
 ```
 
-A future CAN decoder can replace a simulated source without changing the dashboard, rule engine, trip detector or AI interface.
+A future CAN decoder can replace the simulated source without changing dashboard, rules, history or AI interfaces.
+
+## Historical learning policy
+
+The reference baseline is intended to represent healthy behavior. Samples associated with ATTENTION or CRITICAL diagnostic conditions are excluded from reference learning. They still enter the rolling window, allowing current behavior to drift away from the frozen healthy reference.
+
+The reference baseline requires 20 eligible samples before anomaly status becomes qualified. Before that, comparisons are marked `UNQUALIFIED`.
+
+Anomaly score is a project heuristic, not a manufacturer service limit.
+
+## Storage strategy
+
+v0.3 uses:
+
+- SQLite for events, starts, trip summaries and post-trip reports;
+- flat JSONL streamed while a trip is active;
+- Parquet/ZSTD finalization when DuckDB is installed;
+- DuckDB for local historical queries;
+- baseline rebuild from persisted start/trip summaries after restart.
+
+Future high-frequency vibration/audio will use bounded ring buffers and event-triggered retention.
 
 ## Planned hardware topology
 
@@ -82,18 +108,4 @@ A future CAN decoder can replace a simulated source without changing the dashboa
                   sensors / isolated inputs / RS485
 ```
 
-The exact MGO4 CAN pins, wire colors and signal IDs are intentionally not hard-coded until they are confirmed on the specific vehicle.
-
-## Storage strategy
-
-v0.1 uses:
-
-- SQLite for events, starts and trip metadata;
-- JSONL for raw per-trip normalized state.
-
-Planned:
-
-- Parquet for compact historical telemetry;
-- DuckDB for local analytics;
-- bounded ring buffers for high-rate vibration/audio;
-- event-triggered retention of raw high-frequency data.
+Exact MGO4 CAN pins, wire colors and signal IDs are intentionally not hard-coded until confirmed on the specific vehicle.

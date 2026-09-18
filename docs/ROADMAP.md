@@ -29,15 +29,19 @@
 - [x] Fault-laboratory API and dashboard controls.
 - [x] Automated fault-scenario tests.
 
-## v0.3 — Historical analytics
+## v0.3.0 — Historical analytics (current)
 
-- [ ] Parquet trip telemetry.
-- [ ] DuckDB analytics layer.
-- [ ] Reference and rolling baselines.
-- [ ] Baseline qualification period.
-- [ ] Trend and anomaly scoring.
-- [ ] Compare-trip API.
-- [ ] Post-trip report.
+- [x] Streaming flat trip telemetry with JSONL fallback.
+- [x] Parquet/ZSTD trip finalization.
+- [x] DuckDB analytics layer.
+- [x] Reference and rolling baselines.
+- [x] 20-sample baseline qualification period.
+- [x] Exclude unhealthy starts/trips from reference learning.
+- [x] Trend/anomaly score.
+- [x] Baseline rebuild after restart.
+- [x] Compare-trip API.
+- [x] Stored post-trip report.
+- [x] Running-only trip aggregation for oil pressure and related metrics.
 
 ## v0.4 — Complete local UI
 

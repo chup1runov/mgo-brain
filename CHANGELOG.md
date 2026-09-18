@@ -2,6 +2,26 @@
 
 All notable changes to MGO Brain are tracked here.
 
+## [0.3.0] - 2026-09-18
+
+### Added
+- Streaming flat trip telemetry designed for Parquet conversion.
+- DuckDB-backed Parquet/ZSTD historical analytics.
+- Persistent reference and rolling baselines for start and trip metrics.
+- 20-sample baseline qualification period with explicit UNQUALIFIED state.
+- Healthy-reference protection: diagnostic ATTENTION/CRITICAL starts and trips are excluded from reference learning.
+- Heuristic historical anomaly score with NORMAL / WATCH / ATTENTION states.
+- Baseline rebuild from persisted starts/trips after restart.
+- Stored post-trip reports.
+- Trip comparison API.
+- Historical analytics and baseline API endpoints.
+- DuckDB/Parquet CI round-trip test.
+
+### Fixed
+- Stopped-engine zero oil pressure no longer contaminates the minimum running oil-pressure metric.
+- Python package discovery for editable CI installs.
+- Docker runtime path behavior by using editable project installation.
+
 ## [0.2.0] - 2026-09-18
 
 ### Added
@@ -17,11 +37,6 @@ All notable changes to MGO Brain are tracked here.
 - Automated tests for all v0.2 fault classes and health/alert behavior.
 - `docs/FAULT_LAB.md`.
 
-### Changed
-- Service pipeline now processes rule results through `AlertManager` before health evaluation.
-- Simulator drive-cycle timing can adapt to fault scenarios such as slow cranking.
-- Project package version advanced to 0.2.0.
-
 ## [0.1.0] - 2026-09-18
 
 ### Added
@@ -31,7 +46,7 @@ All notable changes to MGO Brain are tracked here.
 - Synthetic M.Go drive-cycle simulator.
 - Vehicle mode inference.
 - Start and trip detection.
-- SQLite metadata store and JSONL trip telemetry.
+- SQLite metadata store.
 - Deterministic safety-rule engine.
 - Initial adaptive start/battery baselines.
 - FastAPI REST API and WebSocket live stream.

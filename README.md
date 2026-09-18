@@ -2,7 +2,7 @@
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
-The current software can be developed without touching the vehicle. It simulates a complete start/drive/stop cycle, injects faults, normalizes telemetry into canonical signals, tracks alert lifecycles, evaluates subsystem health, stores trip/start history, and exposes a local API + dashboard.
+The current software can be developed without touching the vehicle. It simulates a complete start/drive/stop cycle, injects faults, normalizes telemetry into canonical signals, tracks alert lifecycles, evaluates subsystem health, stores trip/start history, builds historical baselines, and exposes a local API + dashboard.
 
 It deliberately does **not** control the vehicle.
 
@@ -14,8 +14,7 @@ It deliberately does **not** control the vehicle.
 - machine-readable registry of 80 planned/simulated channels;
 - Progress ACT/MGO maintenance-plan registry;
 - vehicle state machine: OFF → ACC → IGNITION → PREHEAT → CRANKING → IDLE/DRIVING → OFF;
-- SQLite event/start/trip metadata;
-- Parquet/ZSTD per-trip telemetry when the analytics extra is installed;\n- JSONL streaming fallback when DuckDB is unavailable;
+- SQLite event/start/trip/report metadata;
 - FastAPI REST API + WebSocket;
 - local mobile-friendly dashboard;
 - AI-context endpoint;
@@ -35,29 +34,25 @@ Nine injectable scenarios are available:
 - `cvt_slip`
 - `cvt_overheat`
 
-The diagnostic layer now includes:
-
-- deterministic local rules;
-- ACTIVE → CLEARED alert lifecycle;
-- alert history;
-- subsystem health for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
-- `UNKNOWN` rather than false `NORMAL` when a sensor set is missing.
+The diagnostic layer includes deterministic local rules, ACTIVE → CLEARED alert lifecycle, alert history, and subsystem health for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES. Missing sensor sets report `UNKNOWN`, not a false `NORMAL`.
 
 ### Historical analytics
 
 v0.3 adds:
 
+- streaming flat JSONL while a trip is active;
+- Parquet/ZSTD finalization when the analytics extra is installed;
 - DuckDB-backed local historical analytics;
 - a healthy **reference baseline** separated from the rolling 30-sample window;
 - a 20-sample qualification period before anomaly judgments become active;
-- exclusion of trips/starts with ATTENTION or CRITICAL diagnostic conditions from the healthy reference baseline;
-- heuristic anomaly score + NORMAL / WATCH / ATTENTION status;
+- exclusion of starts/trips with ATTENTION or CRITICAL diagnostic conditions from healthy reference learning;
+- heuristic anomaly score + NORMAL / WATCH / ATTENTION state;
 - persistent baseline rebuild from SQLite history after restart;
 - trip comparison API;
 - automatically stored post-trip reports;
-- a fix preventing stopped-engine 0 bar oil pressure from contaminating trip minimums.
+- running-only aggregation so a stopped engine's 0 bar oil pressure cannot contaminate trip minimums.
 
-The historical layer is not part of the real-time safety path. If DuckDB/Parquet is unavailable, live rules, alerts and health evaluation continue to work.
+Historical analytics are not part of the real-time safety path. If DuckDB/Parquet is unavailable, live rules, alerts and health evaluation continue to work.
 
 ## Run
 
@@ -87,17 +82,21 @@ Core:
 - `GET /api/v1/state`
 - `GET /api/v1/events`
 - `GET /api/v1/trips`
-- `GET /api/v1/starts`\n- `GET /api/v1/trips/{id}/report`\n- `GET /api/v1/baselines`\n- `GET /api/v1/analytics/summary`\n- `GET /api/v1/analytics/compare?trip_a=1&trip_b=2`
+- `GET /api/v1/trips/{id}/report`
+- `GET /api/v1/starts`
 - `GET /api/v1/alerts`
 - `GET /api/v1/health-summary`
 - `GET /api/v1/ai/context`
+- `GET /api/v1/baselines`
+- `GET /api/v1/analytics/summary`
+- `GET /api/v1/analytics/compare?trip_a=1&trip_b=2`
 - `GET /api/v1/spec/signals`
 - `GET /api/v1/spec/maintenance`
-- `WS  /ws/live`
+- `WS /ws/live`
 
 Simulator laboratory:
 
-- `GET  /api/v1/simulator/faults`
+- `GET /api/v1/simulator/faults`
 - `POST /api/v1/simulator/faults/{name}/enable`
 - `POST /api/v1/simulator/faults/{name}/disable`
 - `POST /api/v1/simulator/faults/clear`
@@ -115,11 +114,13 @@ Start/Trip detectors
         ↓
 Deterministic Rules
         ↓
-Alert lifecycle
+Alert lifecycle + Subsystem Health
         ↓
-Subsystem Health
+Reference baseline + Rolling baseline
         ↓
-Reference + rolling baselines / Parquet + DuckDB / reports\n        ↓\nStorage / REST / WebSocket / Dashboard / AI context
+SQLite summaries + Parquet/DuckDB history
+        ↓
+REST / WebSocket / Dashboard / AI context
 ```
 
 Future physical sources can replace the simulator without changing the consumers:
@@ -150,4 +151,4 @@ python -m compileall -q mgo_brain tests
 pytest -q
 ```
 
-Current local verification: **12 tests** covering the core state machine, deterministic safety behavior, all v0.2 fault classes, alert lifecycle and subsystem health.
+The minimal local environment currently passes **18 tests** and skips the DuckDB-specific round-trip test when DuckDB is unavailable. GitHub CI installs the analytics extra, so the Parquet/DuckDB round-trip test is required there.

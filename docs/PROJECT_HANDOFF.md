@@ -4,15 +4,15 @@
 
 Turn a mechanically simple 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into a deeply observable vehicle without replacing or taking control of its factory safety-critical systems.
 
-MGO Brain should combine factory signals, added sensors, trip/service history and local diagnostics into a single digital-twin-style interface. AI may explain and correlate evidence, but local deterministic logic remains responsible for critical alerts.
+MGO Brain combines factory signals, added sensors, trip/service history and local diagnostics into one digital-twin-style interface. AI may explain and correlate evidence, but local deterministic logic remains responsible for critical alerts.
 
 ## Vehicle basis
 
 - Vehicle: Microcar M.Go / F8 0.5, model year 2017.
 - Engine: Progress ACT / Lombardini LDW502, 505 cm³ diesel.
 - Drivetrain: front drive with CVT and D/N/R reduction gearbox.
-- Factory diagnostics: Progress ACT does not provide the same normal OBD-II/engine-ECU path as the DCI variant.
-- Factory body electronics: MGO4/P98 uses integrated BFI/fuse-box electronics and has a CAN-related harness in the parts documentation.
+- Progress ACT does not expose the same normal OBD-II/engine-ECU path as the DCI variant.
+- MGO4/P98 body electronics use integrated BFI/fuse-box electronics and a CAN-related harness documented in the parts catalogue.
 
 ## Current software state
 
@@ -20,25 +20,23 @@ Current release: `v0.3.0`.
 
 Working features:
 
-- simulator-driven source;
-- canonical vehicle signal model;
-- signal quality/source metadata;
-- 80-signal registry;
-- vehicle mode inference;
-- start/trip detectors;
-- SQLite metadata persistence;
-- streaming flat trip telemetry with Parquet/ZSTD finalization when DuckDB is available;
-- basic rule engine;
-- starter/battery baselines;
-- FastAPI REST API;
-- WebSocket live telemetry;
-- minimal dashboard;
-- AI-context endpoint.
-- nine fault-injection scenarios;
+- simulator-driven source and canonical vehicle signal model;
+- signal quality/source metadata and 80-signal registry;
+- vehicle mode, start and trip detection;
+- SQLite event/start/trip/report persistence;
+- deterministic rules and nine injectable fault scenarios;
 - ACTIVE → CLEARED alert lifecycle;
-- subsystem health engine for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
-- fault-laboratory API and dashboard controls;
-- historical DuckDB/Parquet analytics;\n- healthy reference + rolling baselines with 20-sample qualification;\n- unhealthy-trip exclusion from reference learning;\n- anomaly scoring, compare-trip API and stored post-trip reports;\n- automated v0.1/v0.2/v0.3 tests including Parquet round-trip in CI.
+- subsystem health for ENGINE / CVT / ELECTRICAL / TYRES / BRAKES;
+- streaming flat trip telemetry;
+- Parquet/ZSTD finalization with DuckDB analytics;
+- healthy reference baseline + rolling baseline;
+- 20-sample baseline qualification;
+- exclusion of ATTENTION/CRITICAL starts/trips from healthy reference learning;
+- baseline rebuild after restart;
+- anomaly scoring;
+- compare-trip API;
+- stored post-trip reports;
+- REST API, WebSocket, dashboard and AI-context endpoint.
 
 ## Hardware direction
 
@@ -61,18 +59,20 @@ Planned topology:
 - Do not make MGO Brain required for engine start, braking, gear selection, OEM oil/overheat warnings or other vehicle-critical functions.
 - Added measurements should preserve OEM warnings and sensors where possible.
 - Critical alarms must work without AI or Internet access.
+- Historical analytics must not sit in the real-time safety path.
 
 ## Immediate software priority
 
-Continue with v0.3 before physical vehicle survey:
+Continue with v0.4 before physical vehicle survey:
 
-1. Parquet trip telemetry;
-2. DuckDB local analytics;
-3. reference + rolling baselines;
-4. baseline qualification period;
-5. trend/anomaly scoring;
-6. compare-trip API;
-7. post-trip report.
+1. HOME screen.
+2. ENGINE screen.
+3. CVT screen.
+4. ELECTRICAL screen.
+5. TRIPS + post-trip reports UI.
+6. SERVICE screen.
+7. LAB/debug/fault-lab screen.
+8. PWA/offline shell.
 
 ## Deferred physical milestone
 
