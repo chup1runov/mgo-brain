@@ -2,91 +2,80 @@
 
 ## v0.1.0 — Software foundation
 
-- [x] Canonical signal model.
-- [x] 80-signal registry.
-- [x] Vehicle state machine.
-- [x] Synthetic M.Go simulator.
-- [x] Start and trip detection.
-- [x] Deterministic safety rules.
-- [x] SQLite event/start/trip metadata.
-- [x] Live REST/WebSocket API.
-- [x] Initial dashboard.
-- [x] AI-context endpoint.
-- [x] CI and Docker packaging.
+- [x] Canonical signal model and 80-signal registry.
+- [x] Vehicle state machine and simulator.
+- [x] Start/trip detection.
+- [x] SQLite persistence.
+- [x] REST/WebSocket/API foundation.
+- [x] Docker + CI.
 
 ## v0.2.0 — Fault and health simulator
 
-- [x] Fault injection framework.
-- [x] Weak-battery scenario.
-- [x] Starter degradation scenario.
-- [x] Glow-plug / preheat anomaly scenario.
-- [x] Alternator under/over-voltage scenarios.
-- [x] Oil-pressure failure scenarios.
-- [x] Cooling over-temperature scenarios.
-- [x] CVT drift/over-temperature scenarios.
-- [x] Subsystem health model: ENGINE / CVT / ELECTRICAL / TYRES / BRAKES.
-- [x] Explicit ACTIVE → CLEARED alert lifecycle.
-- [x] Fault-laboratory API and dashboard controls.
-- [x] Automated fault-scenario tests.
+- [x] Nine fault-injection scenarios.
+- [x] Deterministic fault rules.
+- [x] ACTIVE → CLEARED lifecycle.
+- [x] ENGINE / CVT / ELECTRICAL / TYRES / BRAKES health.
+- [x] Honest UNKNOWN state for uninstrumented subsystems.
+- [x] Fault-lab API/dashboard.
 
-## v0.3.0 — Historical analytics (current)
+## v0.3.0 — Historical analytics
 
-- [x] Streaming flat trip telemetry with JSONL fallback.
+- [x] Streaming flat trip telemetry.
 - [x] Parquet/ZSTD trip finalization.
-- [x] DuckDB analytics layer.
-- [x] Reference and rolling baselines.
-- [x] 20-sample baseline qualification period.
-- [x] Exclude unhealthy starts/trips from reference learning.
-- [x] Trend/anomaly score.
+- [x] DuckDB analytics.
+- [x] Reference + rolling baselines.
+- [x] 20-sample qualification period.
+- [x] Exclude unhealthy samples from reference learning.
 - [x] Baseline rebuild after restart.
+- [x] Anomaly scoring.
 - [x] Compare-trip API.
-- [x] Stored post-trip report.
-- [x] Running-only trip aggregation for oil pressure and related metrics.
+- [x] Stored post-trip reports.
+- [x] Running-only trip aggregation.
 
-## v0.4 — Complete local UI
+## v0.4.0 — Complete local UI (current)
 
-- [ ] HOME screen.
-- [ ] ENGINE screen.
-- [ ] CVT screen.
-- [ ] ELECTRICAL screen.
-- [ ] TRIPS screen.
-- [ ] SERVICE screen.
-- [ ] LAB/debug screen.
-- [ ] PWA/offline shell.
+- [x] HOME.
+- [x] ENGINE.
+- [x] CVT.
+- [x] POWER / ELECTRICAL.
+- [x] TRIPS with reports and comparison.
+- [x] SERVICE.
+- [x] LAB/debug/fault laboratory.
+- [x] PWA manifest + icon.
+- [x] Offline application shell.
+- [x] Dynamic API/WebSocket data excluded from stale-cache fallback.
+- [x] Responsive mobile/desktop navigation.
 
 ## v0.5 — Hardware abstraction
 
-- [ ] Generic SourceAdapter protocol.
-- [ ] SocketCAN adapter.
-- [ ] CAN DBC decoder support.
+- [ ] Formal SourceAdapter protocol.
+- [ ] Simulator migrated behind SourceAdapter.
+- [ ] SocketCAN receive-only adapter.
+- [ ] DBC loader/decoder.
 - [ ] SensorHub CAN protocol.
 - [ ] Modbus/RS485 input adapter.
 - [ ] Battery-monitor adapter.
 - [ ] TPMS adapter.
 - [ ] GNSS/IMU adapter.
+- [ ] Source selection by configuration.
 
 ## Hardware survey milestone
 
-Before any factory-wire integration:
-
 - [ ] Photograph BFI/fuse-box wiring.
 - [ ] Identify factory CAN twisted pair.
-- [ ] Confirm CAN bus resistance and bitrate.
+- [ ] Confirm bus resistance and bitrate.
 - [ ] Record first listen-only CAN dumps.
-- [ ] Map one action at a time: door, D/N/R, brake, lights, speed, fuel.
+- [ ] Map door, D/N/R, brake, lights, speed and fuel one action at a time.
 - [ ] Create first `MGO4_CAN.dbc`.
 
 ## v0.6 — First real vehicle data
 
 - [ ] AutoPi installed with protected power.
 - [ ] Factory CAN connected listen-only.
-- [ ] Simulator and real source switchable by configuration.
 - [ ] Real speed/gear/body signals normalized.
 - [ ] Logging verified over multiple trips.
 
 ## v0.7 — Engine and power instrumentation
-
-Only after physical dimensions/threads/signals are confirmed:
 
 - [ ] Battery current/SoC monitor.
 - [ ] RPM source.
@@ -113,12 +102,10 @@ Only after physical dimensions/threads/signals are confirmed:
 - [ ] Water ingress sensors.
 - [ ] Camera/event timestamps.
 
-## v1.0 — MGO Brain operational
-
-Definition of done:
+## v1.0 — Operational MGO Brain
 
 - [ ] automatic startup/shutdown;
-- [ ] failure of MGO Brain cannot prevent normal vehicle operation;
+- [ ] MGO Brain failure cannot prevent normal vehicle operation;
 - [ ] factory CAN read passively;
 - [ ] Sensor CAN operational;
 - [ ] trip/start/service history retained;
@@ -126,5 +113,5 @@ Definition of done:
 - [ ] deterministic local critical alarms;
 - [ ] learned reference/rolling baselines;
 - [ ] mobile local dashboard;
-- [ ] AI analysis uses structured data + documentation + service history;
-- [ ] core operation remains useful without Internet access.
+- [ ] AI uses structured telemetry + documentation + service history;
+- [ ] useful core operation without Internet access.

@@ -1,111 +1,80 @@
 # MGO Brain Architecture
 
-MGO Brain is a read/observe-first telemetry and condition-monitoring platform for a 2017 Microcar M.Go / F8 0.5 with the Progress ACT / Lombardini LDW502 engine.
+MGO Brain is a read/observe-first telemetry and condition-monitoring platform for a 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502.
 
 ## Safety boundary
 
-MGO Brain is not a replacement ECU and must not become a single point of failure for vehicle-critical functions. Vehicle operation must remain possible if the entire MGO Brain system is unplugged or failed.
+MGO Brain is not a replacement ECU and must not become a single point of failure. The vehicle must remain operable if MGO Brain is unplugged or failed.
 
-Initial hardware integrations are therefore read-only:
+- factory CAN discovery is listen-only;
+- OEM digital signals are sensed in isolation when needed;
+- added sensors supplement rather than replace OEM warnings;
+- deterministic critical alerts work without cloud/AI;
+- historical analytics are outside the real-time safety path.
 
-- listen-only access to the factory BFI/CAN bus;
-- isolated sensing of OEM digital signals when CAN data is unavailable;
-- independent add-on sensors for temperatures, pressures, vibration and power telemetry;
-- local deterministic critical alarms independent of cloud/AI availability.
-
-AI is explanatory/analytical, not the sole safety mechanism. Historical analytics are also isolated from the real-time alert path.
-
-## Logical layers
+## Logical architecture
 
 ```text
-Physical sources
-  simulator / MGO CAN / SensorHub / GNSS / SmartShunt / TPMS / added sensors
-        |
-        v
-Source adapters
-        |
-        v
-Canonical signals + quality metadata
-        |
-        v
+Physical/simulated sources
+        ↓
+SourceAdapter layer
+        ↓
+Canonical signals + quality/source metadata
+        ↓
 VehicleState + state machine
-        |
-        +--> Start detector --> StartEvent
-        +--> Trip detector  --> TripSummary + telemetry
-        |
-        v
-Deterministic rules --> Alert lifecycle --> Subsystem health
-        |
-        +------------------------ real-time safety/diagnostic path
-        |
-        v
+        ↓
+Start / Trip detectors
+        ↓
+Deterministic rules → Alert lifecycle → Subsystem health
+        ↓
 Healthy reference baseline + rolling baseline
-        |
-        v
-SQLite summaries/reports + Parquet/ZSTD telemetry
-        |
-        v
+        ↓
+SQLite metadata/reports + Parquet/ZSTD telemetry
+        ↓
 DuckDB historical analytics
-        |
-        +--> REST API
-        +--> WebSocket live state
-        +--> Dashboard
-        +--> AI context gateway
+        ↓
+REST / WebSocket / AI context
+        ↓
+Local PWA console
+HOME | ENGINE | CVT | POWER | TRIPS | SERVICE | LAB
 ```
-
-## Canonical signal contract
-
-Consumers do not depend on the physical source. A signal is normalized before diagnostics or UI use.
-
-```json
-{
-  "value": 82.4,
-  "unit": "°C",
-  "quality": "GOOD",
-  "source": "sensorhub.coolant",
-  "timestamp": "2026-09-18T10:00:00Z"
-}
-```
-
-A future CAN decoder can replace the simulated source without changing dashboard, rules, history or AI interfaces.
 
 ## Historical learning policy
 
-The reference baseline is intended to represent healthy behavior. Samples associated with ATTENTION or CRITICAL diagnostic conditions are excluded from reference learning. They still enter the rolling window, allowing current behavior to drift away from the frozen healthy reference.
+The healthy reference baseline excludes starts/trips associated with ATTENTION or CRITICAL diagnostic conditions. Those observations may still enter the rolling window, which makes gradual drift visible against the healthier reference.
 
-The reference baseline requires 20 eligible samples before anomaly status becomes qualified. Before that, comparisons are marked `UNQUALIFIED`.
+Reference baselines require 20 eligible samples before anomaly classification becomes qualified. Before then the result is `UNQUALIFIED`.
 
-Anomaly score is a project heuristic, not a manufacturer service limit.
+The anomaly score is a project heuristic, not a manufacturer service limit.
 
-## Storage strategy
+## Storage
 
-v0.3 uses:
+- SQLite: events, starts, trip summaries and post-trip reports.
+- Flat JSONL: streaming temporary telemetry while a trip is active.
+- Parquet/ZSTD: finalized trip telemetry.
+- DuckDB: local historical queries.
+- Future high-rate vibration/audio: bounded ring buffers plus event-triggered retention.
 
-- SQLite for events, starts, trip summaries and post-trip reports;
-- flat JSONL streamed while a trip is active;
-- Parquet/ZSTD finalization when DuckDB is installed;
-- DuckDB for local historical queries;
-- baseline rebuild from persisted start/trip summaries after restart.
+## PWA policy
 
-Future high-frequency vibration/audio will use bounded ring buffers and event-triggered retention.
+The application shell may be cached offline. Dynamic `/api/` and WebSocket vehicle data are not served from stale caches. A disconnected UI must show loss/reconnection rather than present old measurements as current.
 
 ## Planned hardware topology
 
 ```text
-                    phone / browser
-                          |
-                       Wi-Fi/4G
-                          |
-                    AutoPi TMU CM4
-                 Linux / API / storage
-                    |             |
-             CAN0 listen-only     CAN1
-                    |             |
-              MGO4 BFI/CAN    Sensor CAN
-                                  |
-                           ESP32 SensorHub
-                                  |
-                  sensors / isolated inputs / RS485
+phone/browser
+     |
+ Wi-Fi/4G
+     |
+AutoPi TMU CM4
+ |           |
+CAN0        CAN1
+ |           |
+MGO BFI    Sensor CAN
+             |
+       ESP32 SensorHub
+             |
+      sensors / RS485
 ```
 
-Exact MGO4 CAN pins, wire colors and signal IDs are intentionally not hard-coded until confirmed on the specific vehicle.
+Exact MGO4 CAN pins, wire colors and signal IDs remain intentionally undefined until measured on the vehicle.
