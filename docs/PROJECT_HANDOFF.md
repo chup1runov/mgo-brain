@@ -40,7 +40,7 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 - numeric CAN discovery against an external reference time series;
 - Ask MGO read-only AI Gateway with local fallback and optional OpenAI provider.
 
-## Engineering canon added in v0.5.7
+## Engineering canon added in v0.5.6
 
 - MGO Brain repo-first project policy;
 - safety and evidence policies;

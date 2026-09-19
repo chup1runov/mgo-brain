@@ -51,8 +51,6 @@
 - [x] Counter penalty.
 - [x] LAB/API/CLI.
 
-## Completed
-
 ### v0.5.6 — Repository Canon & Engineering Pack
 - [x] MGO Brain repo-first project policy.
 - [x] Standard repository files and templates.
