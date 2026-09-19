@@ -2,7 +2,7 @@
 
 Last updated: 2026-09-19.
 
-Current release: **v0.5.8 — Russian Driver UI & Localization**.
+Current release: **v0.5.9 — Bench / Integration Simulation Pack**.
 
 ## State
 
@@ -23,7 +23,8 @@ The software, research tooling, deployment tooling, repository canon and read-on
 - repo-first documentation / ADR / safety / BOM / runbooks;
 - Ask MGO local evidence gateway;
 - optional OpenAI provider boundary with precise-location redaction by default;
-- Russian-first driver-facing UI with English fallback.
+- Russian-first driver-facing UI with English fallback;
+- complete multi-source integration bench covering ingestion → health/rules → history → Ask MGO.
 
 ## AI safety boundary
 

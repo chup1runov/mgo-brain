@@ -28,6 +28,7 @@ This is the main entry point for **MGO Brain** documentation.
 - [First vehicle day runbook](FIRST_VEHICLE_DAY.md)
 - [Commissioning & replay](COMMISSIONING.md)
 - [Dedicated display](KIOSK.md)
+- [Integration Bench](BENCH.md)
 
 ## CAN research
 

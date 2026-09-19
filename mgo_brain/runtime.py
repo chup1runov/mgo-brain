@@ -11,12 +11,13 @@ class RuntimeSettings:
     root: Path
     data_dir: Path
     config_dir: Path
+    sources_file: Path | None = None
     host: str = "0.0.0.0"
     port: int = 8080
 
     @property
     def sources_path(self) -> Path:
-        return self.config_dir / "sources.json"
+        return self.sources_file or (self.config_dir / "sources.json")
 
     @property
     def signal_registry_path(self) -> Path:
@@ -36,6 +37,8 @@ class RuntimeSettings:
         root_path = Path(root).resolve()
         data_dir = Path(env.get("MGO_BRAIN_DATA_DIR", str(root_path / "data"))).expanduser()
         config_dir = Path(env.get("MGO_BRAIN_CONFIG_DIR", str(root_path / "config"))).expanduser()
+        sources_file_raw = env.get("MGO_BRAIN_SOURCES_FILE")
+        sources_file = Path(sources_file_raw).expanduser().resolve() if sources_file_raw else None
         host = env.get("MGO_BRAIN_HOST", "0.0.0.0")
         port = int(env.get("MGO_BRAIN_PORT", "8080"))
         if not 1 <= port <= 65535:
@@ -44,6 +47,7 @@ class RuntimeSettings:
             root=root_path,
             data_dir=data_dir.resolve(),
             config_dir=config_dir.resolve(),
+            sources_file=sources_file,
             host=host,
             port=port,
         )

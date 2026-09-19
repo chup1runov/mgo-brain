@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.8", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.9", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -53,7 +53,7 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.8",
+        "version": "0.5.9",
         "source": service.source.name,
         "analytics": service.analytics.available(),
         "data_dir": str(settings.data_dir),
@@ -159,6 +159,29 @@ def survey_session_file(session_id: str, kind: str):
     if path is None:
         raise HTTPException(status_code=404, detail="Survey session file not found")
     return FileResponse(path)
+
+
+@app.get("/api/v1/bench/status")
+def bench_status():
+    return service.bench_status()
+
+
+@app.post("/api/v1/bench/scenario/{scenario}")
+def bench_scenario(scenario: str):
+    try:
+        return service.set_bench_scenario(scenario)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/bench/reset")
+def bench_reset():
+    try:
+        return service.reset_bench()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/events")

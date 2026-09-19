@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.9] - 2026-09-19
+
+### Added
+- Multi-source integration bench with independent CAN, SensorHub, SmartShunt, Modbus, TPMS and GNSS channels.
+- 24-second start/drive/stop bench cycle with configurable time scaling.
+- Normal, weak-battery, undercharge, low-oil-pressure, overheat, CVT-overheat and SensorHub-dropout scenarios.
+- Bench source configuration and `MGO_BRAIN_SOURCES_FILE` override.
+- Bench status/scenario/reset REST API.
+- LAB bench controls.
+- `mgo-bench-smoke` end-to-end CLI.
+- End-to-end start/trip/health/alert/Ask MGO regression tests.
+- `docs/BENCH.md`.
+
 ## [0.5.8] - 2026-09-19
 
 ### Added

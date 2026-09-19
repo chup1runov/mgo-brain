@@ -12,6 +12,7 @@ from .modbus import (
 )
 from .sensorhub import SensorHubChannel, SensorHubSourceAdapter
 from .vedirect import SerialLineTransport, VEDirectSourceAdapter
+from .bench import BenchRigSourceAdapter
 
 
 def register_standard_hardware_builders(factory: SourceFactory) -> SourceFactory:
@@ -128,4 +129,11 @@ def register_standard_hardware_builders(factory: SourceFactory) -> SourceFactory
     factory.register("modbus_di", modbus_di)
     factory.register("modbus_ai", modbus_ai)
     factory.register("vedirect_serial", vedirect_serial)
+    factory.register(
+        "bench",
+        lambda options: BenchRigSourceAdapter(
+            scenario=str(options.get("scenario", "normal")),
+            time_scale=float(options.get("time_scale", 4.0)),
+        ),
+    )
     return factory

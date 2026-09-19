@@ -1,10 +1,10 @@
-# MGO Brain v0.5.8
+# MGO Brain v0.5.9
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.
 
 It deliberately does **not** control the vehicle. Vehicle-critical OEM systems remain independent.
 
-## Current release: v0.5.8
+## Current release: v0.5.9
 
 v0.5 introduces the hardware-abstraction layer. The diagnostic core no longer depends directly on the simulator: every real or simulated input becomes a partial `SourceUpdate`, is merged by `StateAggregator`, and only then becomes the canonical `VehicleState` consumed by rules, health, history, UI and AI.
 
@@ -124,6 +124,20 @@ v0.5.8 makes Russian the default driver-facing language while preserving English
 - canonical API/signal names remain unchanged.
 
 See [UI Visual Concept](docs/UI_CONCEPT.md).
+
+### Integration bench
+
+v0.5.9 adds a complete multi-source virtual bench that exercises the same SourceMux/StateAggregator/diagnostics/history/Ask MGO path intended for real hardware.
+
+```bash
+export MGO_BRAIN_SOURCES_FILE="$(pwd)/config/sources-bench.json"
+mgo-brain
+
+# or a headless end-to-end check:
+mgo-bench-smoke
+```
+
+See [Integration Bench](docs/BENCH.md).
 
 ## Hardware safety boundary
 

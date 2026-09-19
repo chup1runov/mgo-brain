@@ -98,6 +98,13 @@
 </section>
 
 <section id="lab" class="view">
+
+  <h2 data-i18n="lab.bench">Интеграционный стенд</h2>
+  <div class="panel">
+    <div id="benchStatus" class="small muted" data-i18n="lab.bench_inactive">Bench-режим не активен.</div>
+    <div id="benchControls" class="controls" style="margin-top:10px"></div>
+    <button class="button" id="benchReset" style="margin-top:10px" data-i18n="lab.bench_reset">Перезапустить цикл</button>
+  </div>
   <div class="controls"><button class="button danger" id="clearFaults">Сбросить неисправности симулятора</button><button class="button" id="refreshLab" data-i18n="lab.refresh">Обновить</button></div>
   <h2 data-i18n="lab.faults">Лаборатория неисправностей</h2><div id="faults" class="faults"></div>
   <h2 data-i18n="lab.analytics">Аналитика</h2><div id="analytics" class="panel"></div>
@@ -184,6 +191,39 @@ async function refreshTrips(){try{trips=await json('/api/v1/trips?limit=30');$('
 async function showReport(id){try{const r=await json(`/api/v1/trips/${id}/report`);$('tripReport').innerHTML=`${statusHtml(r.status)}<div class="small muted">${r.eligible_for_baseline?'Eligible for healthy baseline':'Excluded from healthy baseline'}</div><div class="list" style="margin-top:8px">${(r.findings||[]).map(f=>`<div>${esc(f)}</div>`).join('')}</div>${r.anomalies?.length?`<pre>${esc(JSON.stringify(r.anomalies,null,2))}</pre>`:''}`;switchView('trips')}catch(e){$('tripReport').textContent='Report unavailable.'}}
 async function compareTrips(){const a=$('tripA').value,b=$('tripB').value;if(!a||!b)return;try{const x=await json(`/api/v1/analytics/compare?trip_a=${a}&trip_b=${b}`);const keys=['max_coolant_c','min_oil_pressure_bar','avg_running_voltage_v','avg_cvt_ratio_deviation_pct','max_cvt_temp_c'];$('compareResult').innerHTML=keys.map(k=>{const d=x.comparison[k];return `<div class="row"><span>${esc(k)}</span><span>${fmt(d?.delta,2)} (${fmt(d?.delta_pct,1)}%)</span></div>`}).join('')}catch(e){$('compareResult').textContent='Comparison unavailable.'}}
 async function refreshService(){try{const x=await json('/api/v1/spec/maintenance');$('maintenance').innerHTML=x.items.map(i=>`<div class="panel row"><div><b>${esc(I18N.maintenance(i.component))}</b><div class="small muted">${esc(i.source)}</div></div><div>${i.distance_km?i.distance_km+' km':''}${i.distance_km&&i.time_months?' / ':''}${i.time_months?i.time_months+(I18N.language()==='ru'?' мес.':' mo'):''}</div></div>`).join('')}catch{}}
+
+const BENCH_LABELS={
+  normal:'lab.bench_normal',
+  weak_battery:'lab.bench_weak_battery',
+  undercharge:'lab.bench_undercharge',
+  low_oil_pressure:'lab.bench_low_oil',
+  overheat:'lab.bench_overheat',
+  cvt_overheat:'lab.bench_cvt_overheat',
+  sensorhub_dropout:'lab.bench_dropout'
+};
+async function refreshBench(){
+  try{
+    const x=await json('/api/v1/bench/status');
+    if(!x.active){
+      $('benchStatus').textContent=tr('lab.bench_inactive','Bench-режим не активен.');
+      $('benchControls').innerHTML='';
+      $('benchReset').disabled=true;
+      return;
+    }
+    $('benchReset').disabled=false;
+    $('benchStatus').textContent=`${tr('lab.bench_scenario','Сценарий')}: ${tr(BENCH_LABELS[x.scenario]||'',x.scenario)} · ${tr('lab.bench_phase','Фаза')}: ${I18N.mode((x.phase||'').toUpperCase())||x.phase} · ×${x.time_scale}`;
+    $('benchControls').innerHTML=(x.available_scenarios||[]).map(name=>`<button class="button ${name===x.scenario?'active':''}" onclick="setBenchScenario('${name}')">${esc(tr(BENCH_LABELS[name]||'',name))}</button>`).join('');
+  }catch(e){
+    $('benchStatus').textContent=tr('lab.bench_inactive','Bench-режим не активен.');
+  }
+}
+async function setBenchScenario(name){
+  try{await json('/api/v1/bench/scenario/'+encodeURIComponent(name),{method:'POST'});await refreshBench()}catch(e){$('benchStatus').textContent=e.message}
+}
+async function resetBench(){
+  try{await json('/api/v1/bench/reset',{method:'POST'});await refreshBench()}catch(e){$('benchStatus').textContent=e.message}
+}
+
 async function refreshLab(){try{const [f,a]=await Promise.all([json('/api/v1/simulator/faults'),json('/api/v1/analytics/summary')]);$('faults').innerHTML=f.faults.map(x=>`<button class="button ${x.active?'active':''}" onclick="toggleFault('${x.name}',${x.active})"><b>${esc(x.name)}</b><div class="small muted">${esc(x.description)}</div></button>`).join('');$('analytics').innerHTML=`<div class="row"><span>DuckDB</span><b>${a.available?'available':'fallback mode'}</b></div><div class="row"><span>Parquet trips</span><b>${a.trip_files}</b></div><div class="row"><span>Samples</span><b>${a.samples??'–'}</b></div>${a.aggregates&&Object.keys(a.aggregates).length?`<pre>${esc(JSON.stringify(a.aggregates,null,2))}</pre>`:''}`}catch{}}
 
 async function loadSurveyDemo(){try{const x=await json('/api/v1/survey/sample');$('surveyBaseline').value=x.baseline;$('surveyAction').value=x.action;$('surveyLabel').value=x.label;$('surveySummary').textContent='Demo loaded. Click Аnalyze.'}catch(e){$('surveySummary').textContent='Unable to load demo.'}}
@@ -243,7 +283,8 @@ async function askMgo(question){
 
 async function toggleFault(name,active){await fetch(`/api/v1/simulator/faults/${name}/${active?'disable':'enable'}`,{method:'POST'});refreshLab();refreshCore()}
 async function clearFaults(){await fetch('/api/v1/simulator/faults/clear',{method:'POST'});refreshLab();refreshCore()}
-function switchView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));localStorage.setItem('mgo-view',id);if(id==='trips')refreshTrips();if(id==='service')refreshService();if(id==='lab'){refreshLab();refreshSurveySessions()}}
+function switchView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));localStorage.setItem('mgo-view',id);if(id==='trips')refreshTrips();if(id==='service')refreshService();if(id==='lab'){refreshLab();refreshSurveySessions();refreshBench()}}
+$('benchReset').onclick=resetBench;
 $('langToggle').onclick=()=>{
   const params=new URLSearchParams(location.search);
   params.set('lang',I18N.language()==='ru'?'en':'ru');
@@ -259,7 +300,7 @@ document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.d
 });
 const saved=localStorage.getItem('mgo-view');if(saved&&$(saved))switchView(saved);
 const proto=location.protocol==='https:'?'wss':'ws';let ws;function connect(){ws=new WebSocket(`${proto}://${location.host}/ws/live`);ws.onopen=()=>{$('conn').textContent='● live';$('conn').className='badge good'};ws.onmessage=e=>{lastState=JSON.parse(e.data);setSignals()};ws.onclose=()=>{ $('conn').textContent=tr('common.reconnecting','переподключение');$('conn').className='badge offline';setTimeout(connect,1500)}}connect();
-setInterval(refreshCore,1000);setInterval(refreshStarts,5000);setInterval(refreshTrips,5000);refreshCore();refreshStarts();refreshTrips();refreshService();refreshSurveySessions();refreshAIStatus();
+setInterval(refreshCore,1000);setInterval(refreshStarts,5000);setInterval(refreshTrips,5000);refreshCore();refreshStarts();refreshTrips();refreshService();refreshSurveySessions();refreshAIStatus();refreshBench();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js').catch(()=>{}))}
 </script>
 </body></html>

@@ -40,12 +40,14 @@ def test_runtime_settings_from_env(tmp_path):
     env = {
         "MGO_BRAIN_DATA_DIR": str(tmp_path / "var"),
         "MGO_BRAIN_CONFIG_DIR": str(tmp_path / "etc"),
+        "MGO_BRAIN_SOURCES_FILE": str(tmp_path / "bench.json"),
         "MGO_BRAIN_HOST": "127.0.0.1",
         "MGO_BRAIN_PORT": "9090",
     }
     settings = RuntimeSettings.from_env(tmp_path, env)
     assert settings.data_dir == (tmp_path / "var").resolve()
     assert settings.config_dir == (tmp_path / "etc").resolve()
+    assert settings.sources_path == (tmp_path / "bench.json").resolve()
     assert settings.host == "127.0.0.1"
     assert settings.port == 9090
 

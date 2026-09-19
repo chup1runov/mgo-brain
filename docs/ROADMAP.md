@@ -90,6 +90,18 @@
 - [x] Localization regression tests.
 - [x] Canonical API/signal identifiers remain unchanged.
 
+### v0.5.9 — Bench / Integration Simulation Pack
+- [x] Multi-source bench controller.
+- [x] Independent CAN / SensorHub / SmartShunt / Modbus / TPMS / GNSS channels.
+- [x] SourceMux + StateAggregator end-to-end path.
+- [x] Full start → trip → stop virtual cycle.
+- [x] Normal / weak battery / undercharge / low-oil / overheat / CVT-overheat scenarios.
+- [x] SensorHub-dropout STALE/UNKNOWN validation.
+- [x] Bench source configuration selectable by environment.
+- [x] Bench scenario REST API + LAB controls.
+- [x] Headless `mgo-bench-smoke`.
+- [x] Start/trip/health/alert/Ask MGO integration tests.
+
 ## Next physical milestone — Hardware Survey
 
 - [ ] Photograph BFI/fuse-box wiring.

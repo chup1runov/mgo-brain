@@ -41,11 +41,13 @@ class MGOBrainService:
         self.store = Store(data_dir)
         self.simulator = MGOSimulator(hz=5)
         self.source_config = self._load_runtime_config(source_config_path)
-        self.simulator_active = any(x.enabled and x.type == "simulator" for x in self.source_config.sources)
 
         factory = SourceFactory(simulator=self.simulator)
         register_standard_hardware_builders(factory)
         self.source = source_adapter or factory.build(self.source_config)
+        self.simulator_active = _contains_source(self.source, "simulator")
+        self.bench_controller = getattr(self.source, "controller", None)
+        self.bench_active = self.bench_controller is not None
 
         preferred = load_preferred_sources(signal_registry_path) if signal_registry_path else {}
         self.aggregator = StateAggregator(
@@ -248,7 +250,26 @@ class MGOBrainService:
                 for x in self.source_config.sources
             ],
             "simulator_active": self.simulator_active,
+            "bench_active": self.bench_active,
+            "bench": self.bench_status() if self.bench_active else None,
         }
+
+    def bench_status(self) -> dict[str, Any]:
+        if not self.bench_active:
+            return {"active": False}
+        return self.bench_controller.status()
+
+    def set_bench_scenario(self, scenario: str) -> dict[str, Any]:
+        if not self.bench_active:
+            raise RuntimeError("Bench source is not active")
+        self.bench_controller.set_scenario(scenario)
+        return self.bench_controller.status()
+
+    def reset_bench(self) -> dict[str, Any]:
+        if not self.bench_active:
+            raise RuntimeError("Bench source is not active")
+        self.bench_controller.reset()
+        return self.bench_controller.status()
 
     def alert_snapshot(self):
         return self.alerts.snapshot()
@@ -304,3 +325,9 @@ class MGOBrainService:
             "trip_b": b.model_dump(mode="json"),
             "comparison": comparison,
         }
+
+
+def _contains_source(source, name: str) -> bool:
+    if getattr(source, "name", None) == name:
+        return True
+    return any(_contains_source(item, name) for item in getattr(source, "adapters", []) or [])
