@@ -18,6 +18,11 @@ def create_backup(
     data_dir = Path(data_dir)
     config_dir = Path(config_dir)
     output = Path(output)
+    data_dir, config_dir, output = data_dir.resolve(), config_dir.resolve(), output.resolve()
+    if output.is_relative_to(data_dir) or output.is_relative_to(config_dir):
+        raise ValueError("Backup output must be outside data/config directories")
+    if output.exists():
+        raise FileExistsError(output)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     created_at = datetime.now(timezone.utc)
@@ -33,7 +38,7 @@ def create_backup(
 
         if data_dir.exists():
             for path in data_dir.rglob("*"):
-                if path.is_dir():
+                if path.is_dir() or path.is_symlink():
                     continue
                 rel = path.relative_to(data_dir)
                 target = staged_data / rel
@@ -72,7 +77,9 @@ def _backup_sqlite(source: Path, target: Path) -> None:
 
 def _copy_tree(source: Path, target: Path) -> None:
     for path in source.rglob("*"):
-        if path.is_dir():
+        if path.is_dir() or path.is_symlink() or path.suffix in {".env", ".key", ".pem", ".p12"} or path.name.startswith(".env"):
+            continue
+        if False:
             continue
         rel = path.relative_to(source)
         dst = target / rel

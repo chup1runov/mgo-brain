@@ -5,7 +5,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .faults import FaultScenario
@@ -19,6 +19,7 @@ from .numeric_discovery import NumericDiscoveryRequest, discover_numeric_from_te
 from .ai_models import AskMGORequest
 from .ai_gateway import AIGateway
 from .main_paths import configure_paths
+from .request_limits import RequestLimitMiddleware
 
 ROOT = Path(__file__).resolve().parent.parent
 settings = RuntimeSettings.from_env(ROOT)
@@ -36,11 +37,14 @@ ai_gateway = AIGateway(service)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await service.start()
-    yield
-    await service.stop()
+    try:
+        yield
+    finally:
+        await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.9", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.10", lifespan=lifespan)
+app.add_middleware(RequestLimitMiddleware)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -51,15 +55,17 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {
-        "status": "ok",
-        "version": "0.5.9",
+    status = service.readiness()
+    return JSONResponse({
+        **status,
+        "status": "ok" if status["ready"] else "degraded",
+        "version": "0.5.10",
         "source": service.source.name,
         "analytics": service.analytics.available(),
         "data_dir": str(settings.data_dir),
         "config_dir": str(settings.config_dir),
         "ai": ai_gateway.status().model_dump(mode="json"),
-    }
+    }, status_code=200 if status["ready"] else 503)
 
 
 @app.get("/manifest.webmanifest")
@@ -248,6 +254,7 @@ def ai_ask(request: AskMGORequest):
         return ai_gateway.ask(
             request.question,
             include_evidence=request.include_evidence,
+            language=request.language,
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

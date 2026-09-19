@@ -123,6 +123,7 @@ def telemetry_row(state) -> dict[str, Any]:
     return {
         "timestamp": state.timestamp.isoformat(),
         "mode": state.mode.value,
+        "signal_metadata_json": json.dumps({name: {"quality": r.quality.value, "source": r.source, "timestamp": r.timestamp.isoformat()} for name, r in state.signals.items()}, separators=(",", ":")),
         "vehicle_speed_kmh": _num(v("vehicle.speed")),
         "vehicle_speed_gps_kmh": _num(v("vehicle.speed_gps")),
         "engine_rpm": _num(v("engine.rpm")),

@@ -75,8 +75,9 @@ class BenchController:
         self._scenario = scenario
 
     def reset(self) -> None:
+        next_epoch = self.wall_started + timedelta(seconds=self.virtual_elapsed())
         self.started = self.clock()
-        self.wall_started = datetime.now(timezone.utc)
+        self.wall_started = next_epoch
 
     def virtual_elapsed(self) -> float:
         return max(0.0, (self.clock() - self.started) * self.time_scale)

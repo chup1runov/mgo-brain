@@ -49,6 +49,10 @@ class CandumpReplayTransport:
             loop=loop,
         )
 
+    @property
+    def exhausted(self):
+        return self.closed or (not self.loop and self._index >= len(self.records))
+
     async def recv(self, timeout: float | None = None) -> CanFrame | None:
         if self.closed or not self.records:
             if timeout:

@@ -83,6 +83,8 @@ class DBCSourceAdapter(SourceAdapter):
         while True:
             frame = await self.transport.recv()
             if frame is None:
+                if getattr(self.transport, "exhausted", False):
+                    return
                 continue
             update = self.decoder.decode(frame)
             if update is not None:

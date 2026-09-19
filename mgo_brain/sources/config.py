@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -25,6 +27,9 @@ class RuntimeSourceConfig:
 
 def load_source_config(path: str | Path) -> RuntimeSourceConfig:
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    timeout = float(raw.get("stale_after_s", 3.0))
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("Invalid stale_after_s")
     return RuntimeSourceConfig(
         stale_after_s=float(raw.get("stale_after_s", 3.0)),
         sources=tuple(
@@ -64,6 +69,12 @@ class SourceFactory:
         self.builders[source_type] = builder
 
     def build(self, config: RuntimeSourceConfig) -> SourceAdapter:
+        enabled = {x.type for x in config.sources if x.enabled}
+        hardware = enabled & {"dbc_socketcan", "sensorhub_socketcan", "modbus_di", "modbus_ai", "vedirect_serial"}
+        if hardware and enabled & {"simulator", "bench"}:
+            raise ValueError("Do not mix synthetic and real vehicle sources")
+        if hardware and os.environ.get("MGO_ALLOW_EXPERIMENTAL_HARDWARE") != "1":
+            raise ValueError("Hardware is not commissioned. Explicit MGO_ALLOW_EXPERIMENTAL_HARDWARE=1 is required after review")
         adapters = []
         for entry in config.sources:
             if not entry.enabled:

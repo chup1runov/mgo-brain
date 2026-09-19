@@ -49,10 +49,10 @@ class ModbusDigitalInputAdapter(SourceAdapter):
             signals = {}
             for channel in self.channels:
                 bits = await self.transport.read_discrete_inputs(channel.address, 1, slave=self.slave)
-                value = bool(bits[0]) if bits else False
-                if channel.invert:
+                value = bool(bits[0]) if len(bits) == 1 else None
+                if channel.invert and value is not None:
                     value = not value
-                signals[channel.canonical] = SignalReading(value=value, quality=SignalQuality.GOOD, source=channel.source, timestamp=ts)
+                signals[channel.canonical] = SignalReading(value=value, quality=SignalQuality.GOOD if value is not None else SignalQuality.INVALID, source=channel.source, timestamp=ts)
             yield SourceUpdate(source=self.name, timestamp=ts, signals=signals)
             await asyncio.sleep(self.poll_interval_s)
 
@@ -76,11 +76,11 @@ class ModbusAnalogInputAdapter(SourceAdapter):
             signals = {}
             for channel in self.channels:
                 regs = await self.transport.read_input_registers(channel.address, 1, slave=self.slave)
-                raw = int(regs[0]) if regs else 0
-                if channel.signed and raw >= 0x8000:
+                raw = int(regs[0]) if len(regs) == 1 else None
+                if channel.signed and raw is not None and raw >= 0x8000:
                     raw -= 0x10000
-                value = raw * channel.scale + channel.offset
-                signals[channel.canonical] = SignalReading(value=value, unit=channel.unit, quality=SignalQuality.GOOD, source=channel.source, timestamp=ts)
+                value = raw * channel.scale + channel.offset if raw is not None else None
+                signals[channel.canonical] = SignalReading(value=value, unit=channel.unit, quality=SignalQuality.GOOD if value is not None else SignalQuality.INVALID, source=channel.source, timestamp=ts)
             yield SourceUpdate(source=self.name, timestamp=ts, signals=signals)
             await asyncio.sleep(self.poll_interval_s)
 

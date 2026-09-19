@@ -71,7 +71,7 @@ class LocalEvidenceProvider(AIProvider):
         if "get_battery_health" in evidence:
             signals = evidence["get_battery_health"].get("signals", {})
             v = signals.get("electrical.battery_voltage", {})
-            if v.get("value") is not None:
+            if v.get("value") is not None and v.get("quality") == "GOOD":
                 lines.append(
                     f"Напряжение сейчас: {v['value']} {v.get('unit') or 'В'} "
                     f"({v.get('quality')}, источник {v.get('source')})."
@@ -80,7 +80,7 @@ class LocalEvidenceProvider(AIProvider):
         if "get_cvt_health" in evidence:
             signals = evidence["get_cvt_health"].get("signals", {})
             dev = signals.get("transmission.cvt_ratio_deviation", {})
-            if dev.get("value") is not None:
+            if dev.get("value") is not None and dev.get("quality") == "GOOD":
                 lines.append(
                     f"Отклонение CVT ratio: {dev['value']}% "
                     f"({dev.get('quality')}, источник {dev.get('source')})."
@@ -89,7 +89,7 @@ class LocalEvidenceProvider(AIProvider):
         active = evidence.get("get_live_state", {}).get("signals", {})
         unusable = [
             name for name, value in active.items()
-            if value.get("quality") in {"STALE", "MISSING", "INVALID"}
+            if value.get("quality") in {"STALE", "MISSING", "INVALID", "UNVERIFIED", "SUSPECT"}
         ]
         if unusable:
             warnings.append("Часть запрошенных данных не является текущей: " + ", ".join(unusable[:8]))
@@ -98,6 +98,9 @@ class LocalEvidenceProvider(AIProvider):
             lines.append("Данных достаточно только для формирования evidence-пакета; внешняя AI-модель не подключена.")
         lines.append("Это локальный fallback: вывод ограничен доступными измерениями и детерминированными статусами.")
 
+        if packet.language == "en":
+            lines = ["Local evidence report. " + str((health or {}).get("health", {}).get("status", "UNKNOWN")),
+                     "No cloud model was used. Unverified or stale readings are not current evidence."]
         return AskMGOResponse(
             answer=" ".join(lines),
             provider=self.name,
@@ -118,7 +121,7 @@ class OpenAIResponsesProvider(AIProvider):
         allow_location: bool | None = None,
         client: Any | None = None,
     ):
-        self.model = model or os.environ.get("MGO_AI_MODEL", "gpt-5.6-terra")
+        self.model = model or os.environ.get("MGO_AI_MODEL", "")
         self.reasoning_effort = reasoning_effort or os.environ.get("MGO_AI_REASONING", "low")
         if allow_location is None:
             allow_location = os.environ.get("MGO_AI_ALLOW_LOCATION", "0").lower() in {"1", "true", "yes", "on"}
@@ -134,7 +137,7 @@ class OpenAIResponsesProvider(AIProvider):
             raise RuntimeError("OpenAI SDK is not installed. Install mgo-brain[ai].") from exc
         if not os.environ.get("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY is not configured.")
-        self._client = OpenAI()
+        self._client = OpenAI(timeout=20.0, max_retries=0)
         return self._client
 
     def status(self) -> AIProviderStatus:
@@ -144,7 +147,7 @@ class OpenAIResponsesProvider(AIProvider):
         except Exception:
             sdk = False
         key = bool(os.environ.get("OPENAI_API_KEY")) or self._client is not None
-        configured = bool(sdk and key) or self._client is not None
+        configured = bool(self.model) and (bool(sdk and key) or self._client is not None)
         location = "location allowed" if self.allow_location else "precise location redacted"
         detail = (
             f"Configured for OpenAI Responses API; {location}."
@@ -159,6 +162,8 @@ class OpenAIResponsesProvider(AIProvider):
         )
 
     def answer(self, packet: EvidencePacket) -> AskMGOResponse:
+        if not self.model:
+            raise RuntimeError("Set MGO_AI_MODEL to an API model available to your account")
         client = self._client_or_raise()
         evidence = packet.evidence if self.allow_location else _redact_precise_location(packet.evidence)
         payload = {
@@ -170,7 +175,9 @@ class OpenAIResponsesProvider(AIProvider):
         response = client.responses.create(
             model=self.model,
             reasoning={"effort": self.reasoning_effort},
-            instructions=SYSTEM_INSTRUCTIONS_RU,
+            instructions=SYSTEM_INSTRUCTIONS_RU + ("\nAnswer in English." if packet.language == "en" else ""),
+            store=False,
+            max_output_tokens=1200,
             input=(
                 "Проанализируй вопрос пользователя и evidence-пакет MGO Brain. "
                 "Не выдумывай отсутствующие значения.\n\n"

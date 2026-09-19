@@ -88,7 +88,7 @@ def test_backup_contains_config_data_and_consistent_sqlite(tmp_path):
 
     extract = tmp_path / "extract"
     with tarfile.open(output, "r:gz") as archive:
-        archive.extractall(extract)
+        archive.extractall(extract, filter="data")
 
     root = extract / "mgo-brain-backup"
     assert (root / "config" / "sources.json").exists()

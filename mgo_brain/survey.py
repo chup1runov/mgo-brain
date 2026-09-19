@@ -61,7 +61,7 @@ def parse_candump_line(line: str) -> CANLogRecord | None:
     match = _HASH_RE.match(stripped)
     if match:
         data_hex = match.group("data")
-        if len(data_hex) % 2:
+        if len(data_hex) % 2 or len(data_hex) > 16 or int(match.group("id"), 16) > 0x1FFFFFFF:
             return None
         return CANLogRecord(
             arbitration_id=int(match.group("id"), 16),
@@ -70,11 +70,11 @@ def parse_candump_line(line: str) -> CANLogRecord | None:
             interface=match.group("iface"),
         )
 
-    match = _BRACKET_RE.match(stripped)
+    match = _BRACKET_RE.fullmatch(stripped)
     if match:
         tokens = match.group("data").split()
         dlc = int(match.group("dlc"))
-        if len(tokens) < dlc:
+        if len(tokens) != dlc or dlc > 8 or int(match.group("id"), 16) > 0x1FFFFFFF:
             return None
         return CANLogRecord(
             arbitration_id=int(match.group("id"), 16),
@@ -177,6 +177,7 @@ def compare_logs(
             "only_in_action": only_in_action,
             "only_in_baseline": only_in_baseline,
             "changed_bytes": sorted(changed_bytes, key=lambda x: x["score"], reverse=True),
+            "observed_dlc": sorted({len(x.data) for x in base_group + act_group}),
         })
 
     candidates.sort(key=lambda x: (x["score"], len(x["changed_bytes"])), reverse=True)
@@ -241,15 +242,19 @@ def render_draft_dbc(candidates: list[dict[str, Any]], *, label: str) -> str:
         max_index = max(
             [x["index"] for x in item.get("changed_bytes", [])] or [7]
         )
-        dlc = min(8, max(1, max_index + 1))
+        observed = item.get("observed_dlc", [])
+        if len(observed) != 1:
+            continue  # A variable/unknown length is not an established DBC message.
+        dlc = observed[0]
         name = f"MGO_{arbitration_id:03X}" if arbitration_id <= 0x7FF else f"MGO_{arbitration_id:08X}"
-        lines.append(f"BO_ {arbitration_id} {name}: {dlc} MGO_BFI")
+        dbc_id = arbitration_id | (0x80000000 if arbitration_id > 0x7FF else 0)
+        lines.append(f"BO_ {dbc_id} {name}: {dlc} MGO_BFI")
         changed = ",".join(str(x["index"]) for x in item.get("changed_bytes", [])) or "presence-only"
         comment = (
             f"Survey candidate for {label}; score={item['score']}; "
             f"changed_bytes={changed}; no signal layout decoded."
-        ).replace('"', "'")
-        lines.append(f'CM_ BO_ {arbitration_id} "{comment}";')
+        ).replace('"', "'").replace("\n", " ").replace("\r", " ").replace("\\", "/")
+        lines.append(f'CM_ BO_ {dbc_id} "{comment}";')
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 

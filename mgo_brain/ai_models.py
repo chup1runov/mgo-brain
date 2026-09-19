@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class AskMGORequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
-    language: str = Field(default="ru", max_length=16)
+    language: Literal["ru", "en"] = "ru"
     include_evidence: bool = False
 
 
@@ -29,6 +29,7 @@ class ToolSpec(BaseModel):
 
 
 class EvidencePacket(BaseModel):
+    language: Literal["ru", "en"] = "ru"
     question: str
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     selected_tools: list[str] = Field(default_factory=list)

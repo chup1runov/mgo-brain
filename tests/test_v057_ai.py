@@ -82,7 +82,7 @@ class FakeClient:
 def test_openai_provider_uses_responses_api_shape_without_network():
     client = FakeClient()
     provider = OpenAIResponsesProvider(
-        model="gpt-5.6-terra",
+        model="fixture-model",
         reasoning_effort="low",
         client=client,
     )
@@ -93,16 +93,16 @@ def test_openai_provider_uses_responses_api_shape_without_network():
     )
     response = provider.answer(packet)
     assert response.provider == "openai"
-    assert response.model == "gpt-5.6-terra"
+    assert response.model == "fixture-model"
     assert "отклонений" in response.answer
-    assert client.responses.kwargs["model"] == "gpt-5.6-terra"
+    assert client.responses.kwargs["model"] == "fixture-model"
     assert client.responses.kwargs["reasoning"] == {"effort": "low"}
     assert "evidence" in client.responses.kwargs["input"]
 
 
 def test_openai_provider_redacts_precise_location_by_default():
     client = FakeClient()
-    provider = OpenAIResponsesProvider(client=client, allow_location=False)
+    provider = OpenAIResponsesProvider(model="fixture-model", client=client, allow_location=False)
     packet = EvidencePacket(
         question="Где машина?",
         selected_tools=["get_live_state"],
@@ -127,7 +127,7 @@ def test_openai_provider_redacts_precise_location_by_default():
 
 
 def test_openai_provider_status_with_injected_client_is_configured():
-    provider = OpenAIResponsesProvider(client=FakeClient())
+    provider = OpenAIResponsesProvider(model="fixture-model", client=FakeClient())
     status = provider.status()
     assert status.provider == "openai"
     assert status.configured is True

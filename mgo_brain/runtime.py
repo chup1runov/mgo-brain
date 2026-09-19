@@ -12,7 +12,7 @@ class RuntimeSettings:
     data_dir: Path
     config_dir: Path
     sources_file: Path | None = None
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8080
 
     @property
@@ -39,7 +39,7 @@ class RuntimeSettings:
         config_dir = Path(env.get("MGO_BRAIN_CONFIG_DIR", str(root_path / "config"))).expanduser()
         sources_file_raw = env.get("MGO_BRAIN_SOURCES_FILE")
         sources_file = Path(sources_file_raw).expanduser().resolve() if sources_file_raw else None
-        host = env.get("MGO_BRAIN_HOST", "0.0.0.0")
+        host = env.get("MGO_BRAIN_HOST", "127.0.0.1")
         port = int(env.get("MGO_BRAIN_PORT", "8080"))
         if not 1 <= port <= 65535:
             raise ValueError("MGO_BRAIN_PORT must be between 1 and 65535")

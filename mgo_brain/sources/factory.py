@@ -48,6 +48,7 @@ def register_standard_hardware_builders(factory: SourceFactory) -> SourceFactory
 
     def sensorhub_socketcan(options: dict):
         transport = SocketCANTransport(
+            require_listen_only=False,  # Separate private Sensor CAN only.
             channel=str(options["channel"]),
             receive_timeout_s=float(options.get("receive_timeout_s", 1.0)),
         )

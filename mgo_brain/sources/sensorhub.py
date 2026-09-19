@@ -118,6 +118,8 @@ class SensorHubSourceAdapter(SourceAdapter):
         while True:
             frame = await self.transport.recv()
             if frame is None:
+                if getattr(self.transport, "exhausted", False):
+                    return
                 continue
             sample = SensorHubCodec.decode(frame, base_id=self.base_id)
             if sample is None:

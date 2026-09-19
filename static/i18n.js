@@ -1,7 +1,7 @@
 window.MGOI18N = (() => {
   const dictionaries = {
     ru: {
-      "app.subtitle": "v0.5.9 • интеграционный стенд",
+      "app.subtitle": "v0.5.10 • интеграционный стенд",
       "conn.connecting": "подключение",
       "nav.home": "ГЛАВНАЯ",
       "nav.engine": "ДВИГАТЕЛЬ",
@@ -130,7 +130,7 @@ window.MGOI18N = (() => {
       "trip.excluded": "исключена"
     },
     en: {
-      "app.subtitle": "v0.5.9 • integration bench",
+      "app.subtitle": "v0.5.10 • integration bench",
       "conn.connecting": "connecting",
       "nav.home": "HOME",
       "nav.engine": "ENGINE",

@@ -1,0 +1,16 @@
+{
+  "tested_checkout": "74682a90f0bb9bae847e710fce96a898e846e59a",
+  "tested_with_reviewed_migration": true,
+  "workflow_run": "35440216208",
+  "tests": 119,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "checks": {
+    "static": "passed",
+    "pytest": "passed",
+    "bench": "passed",
+    "chromium": "passed"
+  },
+  "scope_limit": "Software tests only; no real vehicle, external paid AI or automotive certification."
+}

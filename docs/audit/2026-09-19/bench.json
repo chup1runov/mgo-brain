@@ -1,0 +1,169 @@
+{
+  "scenario": "normal",
+  "source": "bench-rig",
+  "snapshots": [
+    {
+      "elapsed_s": 0.5,
+      "mode": "OFF",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 2.5,
+      "mode": "ACC",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 3.5,
+      "mode": "IGNITION",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 4.5,
+      "mode": "PREHEAT",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 5.5,
+      "mode": "CRANKING",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 6.5,
+      "mode": "IDLE",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 10.0,
+      "mode": "DRIVING",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "NORMAL",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 14.0,
+      "mode": "DRIVING",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "NORMAL",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 18.0,
+      "mode": "DRIVING",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "NORMAL",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 20.5,
+      "mode": "IDLE",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    },
+    {
+      "elapsed_s": 22.5,
+      "mode": "OFF",
+      "overall": "NORMAL",
+      "engine": "NORMAL",
+      "cvt": "UNKNOWN",
+      "electrical": "NORMAL",
+      "tyres": "NORMAL",
+      "brakes": "NORMAL"
+    }
+  ],
+  "starts": [
+    {
+      "id": 1,
+      "started_at": "2026-09-19T11:29:13.814640Z",
+      "ambient_temp_c": 8.0,
+      "battery_before_v": 12.62,
+      "glow_duration_s": 1.0,
+      "starter_duration_s": 1.0,
+      "min_crank_voltage_v": 10.4,
+      "cranking_rpm": 285.0,
+      "time_to_idle_s": 4.0,
+      "baseline_eligible": true
+    }
+  ],
+  "trips": [
+    {
+      "id": 1,
+      "started_at": "2026-09-19T11:29:17.814640Z",
+      "ended_at": "2026-09-19T11:29:33.814640Z",
+      "duration_s": 16.0,
+      "distance_km": 0.08782222222222222,
+      "max_speed_kmh": 41.54,
+      "avg_speed_kmh": 19.759999999999998,
+      "max_coolant_c": 84.0,
+      "max_oil_temp_c": 88.0,
+      "min_oil_pressure_bar": 2.04,
+      "avg_running_voltage_v": 14.15,
+      "avg_cvt_ratio_deviation_pct": 0.61,
+      "max_cvt_temp_c": 63.7,
+      "diagnostic_status": "NORMAL",
+      "baseline_eligible": true,
+      "telemetry_path": "/tmp/mgo-bench-hiv794us/bench/trips/trip_20260919T112917_814640Z.parquet"
+    }
+  ],
+  "alerts": [],
+  "ai": {
+    "provider": "local",
+    "answer": "Статус: NORMAL. Это локальный fallback: вывод ограничен доступными измерениями и детерминированными статусами.",
+    "tools_used": [
+      "get_live_state",
+      "get_source_status",
+      "get_engine_health",
+      "get_fault_events"
+    ],
+    "warnings": []
+  },
+  "checks": {
+    "start_recorded": true,
+    "trip_recorded": true,
+    "trip_distance_positive": true,
+    "ask_mgo_answered": true,
+    "all_primary_subsystems_seen": true
+  }
+}

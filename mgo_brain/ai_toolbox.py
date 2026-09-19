@@ -6,7 +6,7 @@ from .models import SignalQuality
 from .ai_models import ToolSpec
 
 
-UNUSABLE = {SignalQuality.STALE, SignalQuality.MISSING, SignalQuality.INVALID}
+UNUSABLE = {SignalQuality.STALE, SignalQuality.MISSING, SignalQuality.INVALID, SignalQuality.UNVERIFIED, SignalQuality.SUSPECT}
 
 
 class MGOToolbox:
@@ -179,7 +179,7 @@ class MGOToolbox:
                     "unit": reading.unit,
                     "quality": reading.quality.value,
                     "source": reading.source,
-                    "usable": reading.quality not in UNUSABLE,
+                    "usable": reading.usable,
                 }
         return result
 

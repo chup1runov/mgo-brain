@@ -59,7 +59,6 @@ def build_kiosk_command(browser: str, url: str) -> list[str]:
         "--disable-translate",
         "--disable-features=Translate",
         "--overscroll-history-navigation=0",
-        "--check-for-update-interval=31536000",
         url,
     ]
 

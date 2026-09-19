@@ -1,3 +1,6 @@
+# Audit runner output (persistent selected results live under docs/audit/)
+audit-output/
+
 # Python / tooling
 .venv/
 __pycache__/

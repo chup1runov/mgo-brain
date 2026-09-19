@@ -1,3 +1,5 @@
+> Актуальная проверенная точка: **v0.5.10**, аудит 19.09.2026. Начните с [русской точки входа](START_HERE_RU.md). Более ранние отметки «готово» ниже относятся к программным прототипам, не к проверке автомобиля.
+
 # MGO Brain v0.5.9
 
 MGO Brain is a read/observe-first telemetry, diagnostics and digital-twin project for a **Microcar M.Go / F8 0.5 (2017)** with **Progress ACT / Lombardini LDW502**.

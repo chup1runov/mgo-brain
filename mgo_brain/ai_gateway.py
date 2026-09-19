@@ -30,7 +30,7 @@ class AIGateway:
     def tool_specs(self):
         return self.toolbox.specs()
 
-    def build_evidence(self, question: str) -> EvidencePacket:
+    def build_evidence(self, question: str, *, language: str = "ru") -> EvidencePacket:
         tools = select_tools(question)
         evidence: dict[str, Any] = {}
         warnings: list[str] = []
@@ -51,14 +51,21 @@ class AIGateway:
 
         return EvidencePacket(
             question=question,
+            language=language,
             selected_tools=tools,
             evidence=evidence,
             warnings=warnings,
         )
 
-    def ask(self, question: str, *, include_evidence: bool = False) -> AskMGOResponse:
-        packet = self.build_evidence(question)
-        response = self.provider.answer(packet)
+    def ask(self, question: str, *, include_evidence: bool = False, language: str = "ru") -> AskMGOResponse:
+        packet = self.build_evidence(question, language=language)
+        try:
+            response = self.provider.answer(packet)
+        except Exception as exc:
+            if self.provider_name == "local":
+                raise
+            packet.warnings.append("External AI unavailable: " + type(exc).__name__)
+            response = LocalEvidenceProvider().answer(packet)
         if not include_evidence:
             response.evidence = {}
         return response
@@ -66,7 +73,7 @@ class AIGateway:
 
 def select_tools(question: str) -> list[str]:
     q = question.lower()
-    selected = ["get_live_state"]
+    selected = ["get_live_state", "get_source_status"]
 
     def add(*names):
         for name in names:
@@ -94,7 +101,7 @@ def select_tools(question: str) -> list[str]:
     if any(x in q for x in ("ошиб", "неисправ", "fault", "alert", "warning", "почему")):
         add("get_fault_events", "get_baselines")
 
-    if len(selected) == 1:
+    if len(selected) == 2:
         add("get_engine_health", "get_cvt_health", "get_battery_health", "get_recent_trips")
 
     return selected[:7]

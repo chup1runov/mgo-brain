@@ -58,7 +58,10 @@ def parse_reference_csv(text: str) -> tuple[list[ReferenceSample], list[dict[str
             rejected.append({"line": line_no, "row": row})
             continue
         try:
-            samples.append(ReferenceSample(float(row[0]), float(row[1])))
+            timestamp, value = float(row[0]), float(row[1])
+            if not math.isfinite(timestamp) or not math.isfinite(value):
+                raise ValueError("Non-finite reference")
+            samples.append(ReferenceSample(timestamp, value))
         except ValueError:
             rejected.append({"line": line_no, "row": row[:4]})
     samples.sort(key=lambda x: x.timestamp)
