@@ -45,12 +45,12 @@ summary = {
     + f"Tests: {summary['tests']}; failures {summary['failures']}; errors {summary['errors']}; skipped {summary['skipped']}.\n\n"
     + 'The checkpoint commit contains the resulting tested source, not a runtime dependency on migration scripts.\n'
     + 'The inventory hashes refer to tested files before this evidence directory was populated.\n')
-(ROOT / '.github/workflows/audit.yml').write_text((ROOT / 'tools/_audit_final_workflow.txt').read_text())
+# The workflow definition itself is restored separately through the authorized connector.
+# Actions' token is not granted workflow administration permission.
 for name in ('_apply_audit_once.py','_finalize_audit_once.py','_audit_final_workflow.txt','_publish_audit_once.py'):
     (ROOT / 'tools' / name).unlink()
-# Explicit project paths only. No runtime folders, .env files, secrets or raw personal data.
 subprocess.run(['git','add','-A','--','mgo_brain','config','static','tests','deployment','tools','docs',
-                'pyproject.toml','.gitignore','.dockerignore','.github/workflows/audit.yml','README.md'],cwd=ROOT,check=True)
+                'pyproject.toml','.gitignore','.dockerignore','README.md'],cwd=ROOT,check=True)
 subprocess.run(['git','diff','--cached','--check'],cwd=ROOT,check=True)
 subprocess.run(['git','config','user.name','MGO audit automation'],cwd=ROOT,check=True)
 subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],cwd=ROOT,check=True)
