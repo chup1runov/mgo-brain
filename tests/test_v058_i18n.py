@@ -29,7 +29,7 @@ def test_i18n_has_russian_and_english_fallback():
 def test_manifest_declares_russian_default():
     manifest = json.loads((ROOT / "static" / "manifest.webmanifest").read_text(encoding="utf-8"))
     assert manifest["lang"] == "ru"
-    assert manifest["start_url"].endswith("lang=ru")
+    assert manifest["start_url"] == "/"
     assert "диагностика" in manifest["description"].lower()
 
 
