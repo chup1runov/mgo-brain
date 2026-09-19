@@ -1,0 +1,30 @@
+{
+  "checkpoint": "MGO Brain v0.5.10",
+  "date": "2026-09-19",
+  "pull_request": 4,
+  "validated_head_sha": "be4329f42917ef75ffe7909da59f550cdb762ff4",
+  "pull_request_test_checkout_sha": "1283f486c7a51c32807d11fa2f0252cc40316dea",
+  "repository_audit": {
+    "run_id": 35440549406,
+    "conclusion": "success",
+    "tracked_files": 175,
+    "python_files": 76,
+    "static_findings": [],
+    "pytest": {"tests": 125, "failures": 0, "errors": 0, "skipped": 0},
+    "browser": ["Chromium desktop", "Russian default", "English toggle", "local AI requested language", "stale RPM hidden after WebSocket loss", "mobile viewport"],
+    "artifact_id": 10583448429,
+    "artifact_sha256": "37cb28cf44698148a15b3009ab232ad803107484f205fe292c91272f48b0d573"
+  },
+  "ci": {
+    "run_id": 35440549310,
+    "conclusion": "success",
+    "jobs": {"Python 3.11": "success", "Python 3.12": "success", "Python 3.13": "success", "hardware-optional": "success", "ai-optional": "success"}
+  },
+  "docker": {
+    "run_id": 35440549378,
+    "conclusion": "success",
+    "checks": ["actual image build", "non-root container startup", "readiness", "synthetic data origin", "Russian UI"]
+  },
+  "not_tested": ["physical Microcar wiring", "real sensor/device integration", "AutoPi power transients and sleep", "manufacturer diagnostic threshold validity", "paid external AI requests", "automotive certification", "long-term field operation"],
+  "preservation_note": "Selected earlier audit evidence is permanently in this directory. This final summary was verified from the later Actions results and downloaded JUnit/inventory. The documentation-only commit containing this summary is newer than the validated code head; future changes require new validation."
+}
