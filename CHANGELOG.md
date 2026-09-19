@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.7] - 2026-09-19
+
+### Added
+- Ask MGO read-only evidence toolbox.
+- Deterministic question-to-tool router.
+- Local no-cloud fallback provider.
+- Optional OpenAI Responses API provider.
+- External-AI precise location redaction by default.
+- Evidence compaction and high-volume raw-field exclusion.
+- AI status/tools/evidence/ask API.
+- Russian Ask MGO panel on HOME.
+- `mgo-ask` CLI.
+- Optional `ai` dependency group and dedicated CI job.
+- Machine-readable `config/ai-policy.json`.
+- ADR-0007 and updated AI Gateway documentation.
+
 ## [0.5.6] - 2026-09-18
 
 ### Added

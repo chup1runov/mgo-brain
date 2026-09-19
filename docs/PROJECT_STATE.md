@@ -1,12 +1,12 @@
 # Project State
 
-Last updated: 2026-09-18.
+Last updated: 2026-09-19.
 
-Current release: **v0.5.6 — Repository Canon & Engineering Pack**.
+Current release: **v0.5.7 — Ask MGO / AI Gateway**.
 
 ## State
 
-The software, research tooling, deployment tooling and repository canon are prepared for first physical vehicle integration.
+The software, research tooling, deployment tooling, repository canon and read-only AI question layer are prepared for first physical vehicle integration.
 
 ## Ready
 
@@ -20,7 +20,19 @@ The software, research tooling, deployment tooling and repository canon are prep
 - evidence-session storage;
 - deployment / doctor / backup;
 - kiosk display launcher;
-- repo-first documentation / ADR / safety / BOM / runbooks.
+- repo-first documentation / ADR / safety / BOM / runbooks;
+- Ask MGO local evidence gateway;
+- optional OpenAI provider boundary with precise-location redaction by default.
+
+## AI safety boundary
+
+- AI is read-only.
+- Default provider is local.
+- External AI is opt-in.
+- No vehicle-control tools exist.
+- Deterministic local CRITICAL/ATTENTION logic remains independent.
+- Raw high-volume CAN/audio/video is excluded from normal AI context.
+- Precise latitude/longitude is redacted before external AI by default.
 
 ## Not yet evidenced on the actual vehicle
 

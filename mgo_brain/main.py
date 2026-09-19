@@ -16,16 +16,21 @@ from .survey import SurveyAnalyzeRequest, SurveyParseRequest, analyze_text, pars
 from .commissioning_models import SurveySessionCreateRequest
 from .survey_sessions import SurveySessionStore
 from .numeric_discovery import NumericDiscoveryRequest, discover_numeric_from_text, make_numeric_demo
+from .ai_models import AskMGORequest
+from .ai_gateway import AIGateway
+from .main_paths import configure_paths
 
 ROOT = Path(__file__).resolve().parent.parent
 settings = RuntimeSettings.from_env(ROOT)
 settings.ensure_runtime_dirs()
+configure_paths(config_dir=settings.config_dir)
 service = MGOBrainService(
     settings.data_dir,
     source_config_path=settings.sources_path,
     signal_registry_path=settings.signal_registry_path,
 )
 survey_sessions = SurveySessionStore(settings.data_dir / "surveys")
+ai_gateway = AIGateway(service)
 
 
 @asynccontextmanager
@@ -35,7 +40,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.6", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.7", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -48,11 +53,12 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.6",
+        "version": "0.5.7",
         "source": service.source.name,
         "analytics": service.analytics.available(),
         "data_dir": str(settings.data_dir),
         "config_dir": str(settings.config_dir),
+        "ai": ai_gateway.status().model_dump(mode="json"),
     }
 
 
@@ -196,6 +202,32 @@ def health_summary():
 @app.get("/api/v1/ai/context")
 def ai_context():
     return service.ai_context()
+
+
+@app.get("/api/v1/ai/status")
+def ai_status():
+    return ai_gateway.status()
+
+
+@app.get("/api/v1/ai/tools")
+def ai_tools():
+    return {"tools": ai_gateway.tool_specs()}
+
+
+@app.post("/api/v1/ai/evidence")
+def ai_evidence(request: AskMGORequest):
+    return ai_gateway.build_evidence(request.question)
+
+
+@app.post("/api/v1/ai/ask")
+def ai_ask(request: AskMGORequest):
+    try:
+        return ai_gateway.ask(
+            request.question,
+            include_evidence=request.include_evidence,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/baselines")

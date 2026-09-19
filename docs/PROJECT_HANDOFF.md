@@ -18,7 +18,7 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 
 ## Current release
 
-`v0.5.6`
+`v0.5.7`
 
 ## Implemented software
 
@@ -37,9 +37,10 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 - persistent survey evidence sessions;
 - deployment systemd/mDNS/doctor/backup pack;
 - dedicated-display kiosk launcher;
-- numeric CAN discovery against an external reference time series.
+- numeric CAN discovery against an external reference time series;
+- Ask MGO read-only AI Gateway with local fallback and optional OpenAI provider.
 
-## Engineering canon added in v0.5.6
+## Engineering canon added in v0.5.7
 
 - MGO Brain repo-first project policy;
 - safety and evidence policies;
@@ -75,6 +76,16 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 - critical alerts work without AI/Internet;
 - historical analytics are outside the real-time safety path;
 - stale data is not current evidence.
+
+## Ask MGO safety boundary
+
+- default provider is local;
+- external AI is opt-in;
+- AI tools are read-only;
+- no CAN transmit / starter / D/N/R / throttle / brake / steering / glow-control tools exist;
+- deterministic local alerts remain authoritative;
+- exact GNSS coordinates are redacted before external AI by default;
+- raw high-volume CAN/audio/video is not sent as normal AI context.
 
 ## Next milestone
 

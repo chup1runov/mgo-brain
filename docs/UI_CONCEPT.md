@@ -112,6 +112,24 @@ Do not show NORMAL when required signals are missing/stale.
 - coolant;
 - later component install/replacement history.
 
+## ASK MGO
+
+The HOME screen includes a compact Russian question panel:
+
+```text
+Спросить MGO
+[ Почему сегодня дольше заводился? ]
+
+[ Спросить MGO ] [ Двигатель ] [ АКБ ] [ CVT ]
+
+Ответ строится только по данным MGO Brain.
+Provider: LOCAL / OPENAI
+```
+
+The driver-facing answer shows the response and names of evidence tools used, but not the full raw evidence packet.
+
+External AI is optional; local fallback must still work without Internet.
+
 ## LAB
 
 LAB is explicitly an engineering screen and may contain:

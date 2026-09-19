@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mgo-brain"
-version = "0.5.6"
+version = "0.5.7"
 description = "Local telemetry, diagnostics and digital-twin prototype for Microcar M.Go / Progress ACT"
 requires-python = ">=3.11"
 dependencies = [
@@ -23,6 +23,9 @@ hardware = [
   "pymodbus>=3,<4",
   "pyserial>=3.5,<4",
 ]
+ai = [
+  "openai>=3,<4",
+]
 dev = [
   "pytest>=8,<10",
   "httpx>=0.27,<1",
@@ -38,6 +41,7 @@ mgo-doctor = "mgo_brain.doctor_cli:main"
 mgo-backup = "mgo_brain.backup_cli:main"
 mgo-kiosk = "mgo_brain.kiosk_cli:main"
 mgo-discover-numeric = "mgo_brain.numeric_discovery_cli:main"
+mgo-ask = "mgo_brain.ai_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["mgo_brain*"]

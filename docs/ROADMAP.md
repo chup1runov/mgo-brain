@@ -51,7 +51,7 @@
 - [x] Counter penalty.
 - [x] LAB/API/CLI.
 
-## Current
+## Completed
 
 ### v0.5.6 — Repository Canon & Engineering Pack
 - [x] MGO Brain repo-first project policy.
@@ -66,6 +66,19 @@
 - [x] References / glossary / ADRs.
 - [x] Runtime/private-data Git exclusions.
 - [x] CI repository-canon test.
+
+### v0.5.7 — Ask MGO / AI Gateway
+- [x] Read-only AI toolbox.
+- [x] Deterministic question→evidence router.
+- [x] Local no-cloud fallback provider.
+- [x] Optional OpenAI Responses API provider.
+- [x] Evidence size bounding / raw high-volume exclusion.
+- [x] Precise location redaction for external AI by default.
+- [x] AI status/tools/evidence/ask REST API.
+- [x] HOME “Спросить MGO” UI.
+- [x] `mgo-ask` CLI.
+- [x] Optional AI dependency CI job.
+- [x] AI safety/privacy regression tests.
 
 ## Next physical milestone — Hardware Survey
 

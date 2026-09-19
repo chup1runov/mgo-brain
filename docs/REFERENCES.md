@@ -82,3 +82,15 @@ https://sb952effb4c14a0dc.jimcontent.com/download/version/1704918201/module/9695
 
 - Analog Devices ADXL355  
   https://www.analog.com/en/products/adxl355.html
+
+
+## Optional AI provider / OpenAI
+
+- OpenAI Responses/text guide  
+  https://developers.openai.com/api/docs/guides/text
+
+- OpenAI model catalog  
+  https://platform.openai.com/docs/models
+
+- OpenAI API key safety  
+  https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety

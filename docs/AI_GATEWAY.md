@@ -1,71 +1,152 @@
-# AI Gateway Design
+# Ask MGO / AI Gateway
 
-Status: planned interface; deterministic diagnostics already exist independently.
+Status: implemented in v0.5.7.
 
 ## Purpose
 
-The AI layer should answer questions such as:
+Ask MGO explains vehicle evidence without becoming part of the vehicle control or critical-warning path.
 
-- Why did the vehicle start slower today?
-- What changed in CVT behavior over the last month?
-- Did charging behavior degrade?
-- What should be inspected next?
-- Which manual/service information is relevant to the observed event?
+Example questions:
 
-## Non-goals
+- Почему сегодня дольше заводился?
+- Что изменилось по вариатору?
+- Что сейчас с аккумулятором?
+- Были ли новые предупреждения?
+- Что скоро обслуживать?
 
-AI must not:
+## Architecture
 
-- control brakes/steering/throttle/gear/start/glow;
-- replace local CRITICAL rules;
-- invent unavailable telemetry;
-- treat STALE data as current;
-- silently infer unconfirmed CAN mappings.
+```text
+question
+   ↓
+local deterministic router
+   ↓
+selected read-only evidence tools
+   ↓
+compact EvidencePacket
+   ↓
+provider
+   ├─ local fallback (default)
+   └─ OpenAI Responses API (optional)
+   ↓
+answer
+```
 
-## Tool boundary
+## Default behavior
 
-Planned functions:
+Default:
+
+```text
+MGO_AI_PROVIDER=local
+```
+
+No external AI, Internet connection or API key is required.
+
+The local provider is intentionally limited: it summarizes available measurements, quality, health status and recent start/CVT/battery evidence.
+
+## Read-only tools
+
+Implemented:
 
 - `get_live_state()`
 - `get_engine_health()`
 - `get_cvt_health()`
 - `get_battery_health()`
 - `get_start_history()`
-- `get_trip(id)`
-- `compare_trips(a,b)`
+- `get_recent_trips()`
+- `compare_trips()`
 - `get_fault_events()`
-- `get_service_history()`
-- `search_vehicle_manual(query)`
+- `get_service_plan()`
+- `get_baselines()`
+- `get_source_status()`
+
+There are deliberately no tools for CAN transmit, starter control, D/N/R, throttle, braking, steering, glow control or speed-limiter changes.
 
 ## Context compression
 
-Raw CAN/audio/vibration should be processed locally.
+The gateway selects at most a small tool set per question.
 
-AI receives a compact evidence package:
+It removes known high-volume raw fields such as:
 
-```json
-{
-  "current_state": {},
-  "signal_quality": {},
-  "active_alerts": [],
-  "baseline_deviations": [],
-  "recent_trip": {},
-  "maintenance_due": [],
-  "relevant_manual_sections": []
-}
+- raw CAN;
+- raw audio;
+- raw video;
+- raw sample arrays.
+
+Lists are bounded before an external model receives them.
+
+## Signal quality
+
+AI is instructed that:
+
+- `STALE`
+- `MISSING`
+- `INVALID`
+
+are not current measurements.
+
+It must distinguish observation from hypothesis and must not downgrade deterministic local CRITICAL/ATTENTION states.
+
+## Privacy
+
+For an external provider, precise:
+
+- `position.latitude`
+- `position.longitude`
+
+are redacted by default.
+
+Explicit opt-in:
+
+```text
+MGO_AI_ALLOW_LOCATION=1
 ```
 
-## API / secrets
+Do not enable this without a concrete reason.
 
-ChatGPT subscription and OpenAI API billing are separate concerns.
+## OpenAI provider
 
-If automatic API use is enabled later:
+Optional deployment:
 
-- API key stays in deployment secrets;
-- never commit it;
-- log request metadata carefully;
-- provide a local/no-AI fallback.
+```text
+MGO_AI_PROVIDER=openai
+MGO_AI_MODEL=gpt-5.6-terra
+MGO_AI_REASONING=low
+OPENAI_API_KEY=<deployment secret>
+```
+
+The API key must be supplied through environment/secret management and never committed to Git.
+
+The provider uses the OpenAI Responses API through the Python SDK.
+
+Official references:
+
+- Responses/text guide: https://developers.openai.com/api/docs/guides/text
+- API key safety: https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
+
+## REST API
+
+- `GET /api/v1/ai/status`
+- `GET /api/v1/ai/tools`
+- `POST /api/v1/ai/evidence`
+- `POST /api/v1/ai/ask`
+
+Normal `/ask` responses do not include the whole evidence packet unless `include_evidence=true` is explicitly requested.
+
+## CLI
+
+Against the running MGO Brain service:
+
+```bash
+mgo-ask Почему сегодня дольше заводился?
+```
+
+Engineering debug:
+
+```bash
+mgo-ask --evidence Что с вариатором?
+```
 
 ## Voice
 
-Voice is a UI layer. The backend/tool contract should work identically for text and voice.
+Voice remains a UI layer. The same `/api/v1/ai/ask` contract can later be driven by speech-to-text without changing the diagnostic/evidence architecture.

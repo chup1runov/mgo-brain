@@ -39,6 +39,7 @@ This is the main entry point for **MGO Brain** documentation.
 - [Working UI](UI.md)
 - [Visual UI concept](UI_CONCEPT.md)
 - [AI Gateway](AI_GATEWAY.md)
+- [OpenAI provider references](OPENAI_REFERENCES.md)
 - [Data & privacy](DATA_PRIVACY.md)
 - [Fault Lab](FAULT_LAB.md)
 
