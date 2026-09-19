@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 from .alerts import AlertManager, AlertStatus
@@ -10,7 +14,7 @@ from .baseline import BaselineManager
 from .detectors import StartDetector, TripDetector
 from .faults import FaultScenario
 from .health import HealthEngine
-from .models import AIContext, Event, Severity, TripSummary, VehicleState
+from .models import AIContext, Event, Severity, TripSummary, VehicleMode, VehicleState
 from .reports import PostTripReportEngine
 from .rules import RulesEngine
 from .simulator import MGOSimulator
@@ -20,256 +24,288 @@ from .sources.config import RuntimeSourceConfig, SourceEntry, SourceFactory, loa
 from .sources.factory import register_standard_hardware_builders
 from .store import Store
 
-
-SEVERITY_RANK = {
-    Severity.INFO: 0,
-    Severity.WATCH: 1,
-    Severity.ATTENTION: 2,
-    Severity.CRITICAL: 3,
-}
+LOG=logging.getLogger(__name__)
+SEVERITY_RANK={Severity.INFO:0,Severity.WATCH:1,Severity.ATTENTION:2,Severity.CRITICAL:3}
+RULE_INPUTS={
+ 'OEM_OIL_PRESSURE_WARNING':('engine.rpm','engine.oil_warning'),
+ 'LOW_OIL_PRESSURE':('engine.rpm','engine.oil_pressure'),
+ 'OEM_OVERHEAT_WARNING':('engine.overheat_warning',),
+ 'HIGH_COOLANT_TEMP':('engine.coolant_temp',),
+ 'BATTERY_LOW_REST':('electrical.battery_voltage',),
+ 'CRANK_VOLTAGE_LOW':('engine.starter_active','electrical.battery_voltage'),
+ 'STARTER_SLOW_CRANK':('engine.starter_active','engine.rpm'),
+ 'GLOW_CURRENT_LOW':('engine.glow_active','engine.glow_current'),
+ 'CHARGING_LOW':('engine.rpm','electrical.battery_voltage'),
+ 'CHARGING_OVERVOLTAGE':('engine.rpm','electrical.battery_voltage'),
+ 'CVT_RATIO_DRIFT':('engine.rpm','transmission.cvt_ratio_deviation'),
+ 'CVT_OVERHEAT':('engine.rpm','transmission.cvt_temp_primary','transmission.cvt_temp_secondary')}
 
 
 class MGOBrainService:
-    def __init__(
-        self,
-        data_dir: Path,
-        *,
-        source_adapter: SourceAdapter | None = None,
-        source_config_path: Path | None = None,
-        signal_registry_path: Path | None = None,
-    ):
-        self.store = Store(data_dir)
-        self.simulator = MGOSimulator(hz=5)
-        self.source_config = self._load_runtime_config(source_config_path)
-
-        factory = SourceFactory(simulator=self.simulator)
+    def __init__(self,data_dir:Path,*,source_adapter:SourceAdapter|None=None,
+                 source_config_path:Path|None=None,signal_registry_path:Path|None=None):
+        self.simulator=MGOSimulator(hz=5)
+        self.source_config=self._load_runtime_config(source_config_path)
+        factory=SourceFactory(simulator=self.simulator)
         register_standard_hardware_builders(factory)
-        self.source = source_adapter or factory.build(self.source_config)
-        self.simulator_active = _contains_source(self.source, "simulator")
-        self.bench_controller = getattr(self.source, "controller", None)
-        self.bench_active = self.bench_controller is not None
-
-        preferred = load_preferred_sources(signal_registry_path) if signal_registry_path else {}
-        self.aggregator = StateAggregator(
-            stale_after_s=self.source_config.stale_after_s,
-            preferred_sources=preferred,
-        )
-
-        self.rules = RulesEngine()
-        self.alerts = AlertManager(clear_after_s=1.0)
-        self.health = HealthEngine()
-        self.baselines = BaselineManager()
-        self.analytics = HistoricalAnalytics(self.store.trip_dir)
-        self.report_engine = PostTripReportEngine()
-        self.start_detector = StartDetector()
-        self.trip_detector = TripDetector(self.store.trip_dir)
-        self.state = VehicleState()
-        self._subscribers: set[asyncio.Queue] = set()
-        self.task: asyncio.Task | None = None
-        self._start_baseline_eligible = True
-        self._trip_baseline_eligible = True
-        self._trip_worst_severity = Severity.INFO
-        self._rebuild_baselines()
+        self.source=source_adapter or factory.build(self.source_config)
+        self.simulator_active=_contains_source(self.source,'simulator')
+        self.bench_controller=getattr(self.source,'controller',None)
+        self.bench_active=self.bench_controller is not None
+        self.data_origin='bench' if self.bench_active else 'simulator' if self.simulator_active else 'vehicle'
+        # A synthetic baseline must not become the future vehicle's baseline.
+        self.store=Store(Path(data_dir)/self.data_origin)
+        self.aggregator=StateAggregator(stale_after_s=self.source_config.stale_after_s,
+            preferred_sources=load_preferred_sources(signal_registry_path) if signal_registry_path else {})
+        self.rules=RulesEngine()
+        self.alerts=AlertManager(clear_after_s=1.0)
+        self.health=HealthEngine()
+        self.baselines=BaselineManager()
+        self.analytics=HistoricalAnalytics(self.store.trip_dir)
+        self.report_engine=PostTripReportEngine()
+        self.start_detector=StartDetector()
+        self.trip_detector=TripDetector(self.store.trip_dir)
+        self.state=VehicleState()
+        self._subscribers:set[asyncio.Queue]=set()
+        self.task:asyncio.Task|None=None
+        self._history_task:asyncio.Task|None=None
+        self._history_queue:asyncio.Queue|None=None
+        self._history_lock=RLock()
+        self.runtime_errors:dict[str,str]={}
+        self._last_update_mono:float|None=None
+        self._start_baseline_eligible=True
+        self._trip_baseline_eligible=True
+        self._trip_worst_severity=Severity.INFO
+        try:
+            self.baselines.rebuild(self.store.list_starts(10000),self.store.list_trips(10000))
+        except Exception as exc:
+            self.runtime_errors['baseline_rebuild']=type(exc).__name__
 
     @staticmethod
-    def _load_runtime_config(path: Path | None) -> RuntimeSourceConfig:
-        if path is not None and Path(path).exists():
-            return load_source_config(path)
-        return RuntimeSourceConfig(
-            stale_after_s=3.0,
-            sources=(SourceEntry(type="simulator", enabled=True, options={}),),
-        )
-
-    def _rebuild_baselines(self):
-        self.baselines.rebuild(self.store.list_starts(10000), self.store.list_trips(10000))
+    def _load_runtime_config(path:Path|None)->RuntimeSourceConfig:
+        if path is not None:
+            return load_source_config(path)  # Missing explicit configuration must fail closed.
+        return RuntimeSourceConfig(stale_after_s=3.0,sources=(SourceEntry(type='simulator',enabled=True,options={}),))
 
     async def start(self):
-        if self.task is None:
-            self.task = asyncio.create_task(self._loop())
+        if self.task is not None:
+            return
+        self._history_queue=asyncio.Queue(maxsize=512)
+        self._history_task=asyncio.create_task(self._history_worker(),name='mgo-history')
+        self.task=asyncio.create_task(self._loop(),name='mgo-acquisition')
 
     async def stop(self):
-        if self.task:
+        if self.task is not None:
             self.task.cancel()
+            await asyncio.gather(self.task,return_exceptions=True)
+            self.task=None
+        if self._history_task is not None:
             try:
-                await self.task
-            except asyncio.CancelledError:
-                pass
-            self.task = None
+                await asyncio.wait_for(self._history_queue.join(),timeout=5.0)
+            except asyncio.TimeoutError:
+                self.runtime_errors['history_shutdown']='timeout'
+            self._history_task.cancel()
+            await asyncio.gather(self._history_task,return_exceptions=True)
+            self._history_task=None
         await self.source.close()
+        # Preserve the partial JSONL; do not invent an engine-stop observation.
+        if self.trip_detector.file is not None:
+            self.trip_detector.file.close()
+            self.trip_detector.file=None
+            self.trip_detector.active=None
+
+    def _clock_now(self):
+        if self.bench_active:
+            return self.bench_controller.wall_started+timedelta(seconds=self.bench_controller.virtual_elapsed())
+        return datetime.now(timezone.utc)
 
     async def _loop(self):
-        async for update in self.source.stream():
-            state = self.aggregator.apply(update)
-            self.process_state(state)
-            await self._publish(state)
+        stream=self.source.stream()
+        pending=asyncio.create_task(anext(stream))
+        try:
+            while True:
+                done,_=await asyncio.wait({pending},timeout=0.25)
+                if done:
+                    try:
+                        update=pending.result()
+                    except StopAsyncIteration:
+                        self.runtime_errors['source']='exhausted'
+                        break
+                    self._last_update_mono=time.monotonic()
+                    state=self.aggregator.apply(update)
+                    pending=asyncio.create_task(anext(stream))
+                else:
+                    # Age signals even when ALL sources stop publishing.
+                    state=self.aggregator.snapshot(now=self._clock_now())
+                self.process_state(state,background_history=True)
+                await self._publish(state)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            self.runtime_errors['source']=type(exc).__name__
+            LOG.exception('Acquisition failed')
+        finally:
+            pending.cancel()
+            await asyncio.gather(pending,return_exceptions=True)
+            await stream.aclose()
+            if self.runtime_errors.get('source'):
+                ts=max(self.state.timestamp,self._clock_now())+timedelta(seconds=self.source_config.stale_after_s+0.01)
+                self.process_state(self.aggregator.snapshot(now=ts),background_history=True)
+                await self._publish(self.state)
 
-    def process_state(self, state: VehicleState) -> None:
-        """Process one normalized vehicle state without requiring an event loop."""
-        self.state = state
-        rule_events = self.rules.evaluate(state)
-        severe_now = [e for e in rule_events if SEVERITY_RANK[e.severity] >= SEVERITY_RANK[Severity.ATTENTION]]
+    def process_state(self,state:VehicleState,*,background_history:bool=False)->None:
+        """Local rules always run before optional persistence/analytics."""
+        self.state=state
+        rule_events=self.rules.evaluate(state)
+        unavailable={code for code,names in RULE_INPUTS.items() if any(state.value(n) is None for n in names)}
+        transitions=self.alerts.update(rule_events,state.timestamp,unavailable_codes=unavailable)
+        job=(state.model_copy(deep=True),rule_events,transitions)
+        if background_history and self._history_queue is not None:
+            try:
+                self._history_queue.put_nowait(job)
+            except asyncio.QueueFull:
+                self.runtime_errors['history_backpressure']='samples_dropped'
+        else:
+            self._history_job(job)
 
-        start_was_active = self.start_detector.active is not None
-        start_event = self.start_detector.update(state)
-        start_is_active = self.start_detector.active is not None
+    async def _history_worker(self):
+        while True:
+            job=await self._history_queue.get()
+            try:
+                await asyncio.to_thread(self._history_job,job)
+            finally:
+                self._history_queue.task_done()
+
+    def _history_job(self,job):
+        state,events,transitions=job
+        with self._history_lock:
+            for transition in transitions:
+                record=transition.alert
+                try:
+                    self.store.add_event(Event(timestamp=state.timestamp,
+                        severity=Severity.INFO if transition.transition==AlertStatus.CLEARED else record.severity,
+                        code=f'ALERT_{transition.transition.value}:{record.code}',message=record.message,
+                        data=record.model_dump(mode='json')))
+                except Exception as exc:
+                    self.runtime_errors['event_store']=type(exc).__name__
+            try:
+                self._record_history(state,events)
+            except Exception as exc:
+                self.runtime_errors['history']=type(exc).__name__
+                LOG.exception('History failed; live diagnostics remain active')
+
+    def _record_history(self,state,rule_events):
+        if state.mode==VehicleMode.UNKNOWN:
+            self._trip_baseline_eligible=False
+            self._start_baseline_eligible=False
+            return
+        flagged=any(SEVERITY_RANK[e.severity]>=SEVERITY_RANK[Severity.WATCH] for e in rule_events)
+        incomplete=any(not r.usable for name,r in state.signals.items() if name in ('engine.rpm','engine.coolant_temp','engine.oil_pressure','electrical.battery_voltage'))
+        excluded=flagged or incomplete or bool(self.runtime_errors)
+        start_was_active=self.start_detector.active is not None
+        start_event=self.start_detector.update(state)
+        start_is_active=self.start_detector.active is not None
         if not start_was_active and start_is_active:
-            self._start_baseline_eligible = True
-        if severe_now and (start_was_active or start_is_active):
-            self._start_baseline_eligible = False
+            self._start_baseline_eligible=True
+        if excluded and (start_was_active or start_is_active):
+            self._start_baseline_eligible=False
         if start_event:
-            start_event.baseline_eligible = self._start_baseline_eligible
-            start_event.id = self.store.add_start(start_event)
-            start_anomalies = self.baselines.start_anomalies(start_event)
+            start_event.baseline_eligible=self._start_baseline_eligible
+            start_anomalies=self.baselines.start_anomalies(start_event)
+            if any(a.get('status') in {'WATCH','ATTENTION'} for a in start_anomalies):
+                start_event.baseline_eligible=False
+            start_event.id=self.store.add_start(start_event)
             self.baselines.add_start_event(start_event)
-            event = Event(
-                severity=Severity.INFO,
-                code="ENGINE_START",
-                message="Engine start completed.",
-                data={**start_event.model_dump(mode="json"), "historical_anomalies": start_anomalies},
-            )
-            event.id = self.store.add_event(event)
-            self._start_baseline_eligible = True
-
-        trip_was_active = self.trip_detector.active is not None
-        trip = self.trip_detector.update(state)
-        trip_is_active = self.trip_detector.active is not None
+            self.store.add_event(Event(timestamp=state.timestamp,severity=Severity.INFO,code='ENGINE_START',
+                message='Engine start completed.',data={**start_event.model_dump(mode='json'),'historical_anomalies':start_anomalies}))
+        trip_was_active=self.trip_detector.active is not None
+        trip=self.trip_detector.update(state)
+        trip_is_active=self.trip_detector.active is not None
         if not trip_was_active and trip_is_active:
-            self._trip_baseline_eligible = True
-            self._trip_worst_severity = Severity.INFO
+            self._trip_baseline_eligible=True
+            self._trip_worst_severity=Severity.INFO
         if trip_was_active or trip_is_active:
             for event in rule_events:
-                if SEVERITY_RANK[event.severity] > SEVERITY_RANK[self._trip_worst_severity]:
-                    self._trip_worst_severity = event.severity
-            if severe_now:
-                self._trip_baseline_eligible = False
-
+                if SEVERITY_RANK[event.severity]>SEVERITY_RANK[self._trip_worst_severity]:
+                    self._trip_worst_severity=event.severity
+            if excluded:
+                self._trip_baseline_eligible=False
         if trip:
-            trip.baseline_eligible = self._trip_baseline_eligible
-            trip.diagnostic_status = self._trip_worst_severity.value if self._trip_worst_severity != Severity.INFO else "NORMAL"
-            trip.telemetry_path = self.analytics.finalize_trip(trip.telemetry_path)
-            anomalies = self.baselines.trip_anomalies(trip)
-            trip.id = self.store.add_trip(trip)
-            report = self.report_engine.generate(trip, anomalies, trip.baseline_eligible)
-            self.store.add_report(report)
-            self.baselines.add_trip(trip)
-            event = Event(
-                severity=Severity.INFO,
-                code="TRIP_COMPLETE",
-                message="Trip completed.",
-                data={
-                    **trip.model_dump(mode="json"),
-                    "report_status": report.status,
-                    "historical_anomalies": anomalies,
-                },
-            )
-            event.id = self.store.add_event(event)
-            self._trip_baseline_eligible = True
-            self._trip_worst_severity = Severity.INFO
-
-        transitions = self.alerts.update(rule_events, state.timestamp)
-        for transition in transitions:
-            record = transition.alert
-            if transition.transition == AlertStatus.ACTIVE:
-                event = Event(
-                    timestamp=state.timestamp,
-                    severity=record.severity,
-                    code=f"ALERT_ACTIVE:{record.code}",
-                    message=record.message,
-                    data=record.model_dump(mode="json"),
-                )
-            else:
-                event = Event(
-                    timestamp=state.timestamp,
-                    severity=Severity.INFO,
-                    code=f"ALERT_CLEARED:{record.code}",
-                    message=f"Alert cleared: {record.code}",
-                    data=record.model_dump(mode="json"),
-                )
-            event.id = self.store.add_event(event)
-
-    async def _publish(self, state: VehicleState):
-        dead = []
-        payload = state.model_dump(mode="json")
-        for q in self._subscribers:
+            trip.baseline_eligible=self._trip_baseline_eligible
+            trip.diagnostic_status=self._trip_worst_severity.value if self._trip_worst_severity!=Severity.INFO else 'NORMAL'
             try:
-                if q.full():
-                    q.get_nowait()
-                q.put_nowait(payload)
-            except Exception:
-                dead.append(q)
-        for q in dead:
-            self._subscribers.discard(q)
+                trip.telemetry_path=self.analytics.finalize_trip(trip.telemetry_path)
+            except Exception as exc:
+                self.runtime_errors['parquet']=type(exc).__name__
+                trip.baseline_eligible=False
+            anomalies=self.baselines.trip_anomalies(trip)
+            if any(a.get('status') in {'WATCH','ATTENTION'} for a in anomalies):
+                trip.baseline_eligible=False
+            trip.id=self.store.add_trip(trip)
+            self.store.add_report(self.report_engine.generate(trip,anomalies,trip.baseline_eligible))
+            self.baselines.add_trip(trip)
+            self.store.add_event(Event(timestamp=state.timestamp,severity=Severity.INFO,code='TRIP_COMPLETE',
+                message='Trip completed.',data=trip.model_dump(mode='json')))
 
-    def subscribe(self) -> asyncio.Queue:
-        q: asyncio.Queue = asyncio.Queue(maxsize=2)
+    async def _publish(self,state:VehicleState):
+        payload=state.model_dump(mode='json')
+        for q in tuple(self._subscribers):
+            if q.full():
+                q.get_nowait()
+            q.put_nowait(payload)
+
+    def subscribe(self)->asyncio.Queue:
+        q=asyncio.Queue(maxsize=2)
         self._subscribers.add(q)
         return q
 
-    def unsubscribe(self, q: asyncio.Queue):
+    def unsubscribe(self,q):
         self._subscribers.discard(q)
 
-    def ai_context(self) -> AIContext:
-        trips = self.store.list_trips(1)
-        recent_trip = TripSummary.model_validate(trips[0]) if trips else None
-        deviations = [{"metric": name, **metric.stats()} for name, metric in self.baselines.metrics.items()]
-        active_events = [
-            Event(
-                timestamp=alert.last_seen,
-                severity=alert.severity,
-                code=alert.code,
-                message=alert.message,
-                data=alert.data,
-            )
-            for alert in self.alerts.active()
-        ]
-        return AIContext(
-            current_state=self.state,
-            active_alerts=active_events,
-            recent_trip=recent_trip,
-            baseline_deviations=deviations,
-            maintenance_due=[],
-        )
-
     def health_summary(self):
-        active = self.alerts.active()
-        summary = self.health.summary(self.state, active)
-        summary.update({
-            "mode": self.state.mode,
-            "active_alerts": [a.model_dump(mode="json") for a in active],
-            "baseline": self.baselines.summary(),
-            "simulator_faults": self.simulator.faults.names() if self.simulator_active else [],
-        })
+        active=self.alerts.active()
+        summary=self.health.summary(self.state,active)
+        if self.runtime_errors and summary['overall'] not in {'CRITICAL','ATTENTION'}:
+            summary['overall']='ATTENTION'
+        summary.update(mode=self.state.mode,active_alerts=[a.model_dump(mode='json') for a in active],
+                       baseline=self.baselines.summary(),simulator_faults=self.simulator.faults.names() if self.simulator_active else [],
+                       runtime_errors=dict(self.runtime_errors),data_origin=self.data_origin)
         return summary
 
-    def source_status(self) -> dict[str, Any]:
-        return {
-            "adapter": self.source.name,
-            "stale_after_s": self.source_config.stale_after_s,
-            "sources": [
-                {"type": x.type, "enabled": x.enabled, "options": x.options or {}}
-                for x in self.source_config.sources
-            ],
-            "simulator_active": self.simulator_active,
-            "bench_active": self.bench_active,
-            "bench": self.bench_status() if self.bench_active else None,
-        }
+    def readiness(self):
+        age=None if self._last_update_mono is None else time.monotonic()-self._last_update_mono
+        acquisition=bool(self.task and not self.task.done() and age is not None and age<=self.source_config.stale_after_s)
+        return {'ready':acquisition and not self.runtime_errors,'acquisition_live':acquisition,
+                'last_update_age_s':age,'runtime_errors':dict(self.runtime_errors),'data_origin':self.data_origin}
 
-    def bench_status(self) -> dict[str, Any]:
-        if not self.bench_active:
-            return {"active": False}
-        return self.bench_controller.status()
+    def ai_context(self)->AIContext:
+        trips=self.store.list_trips(1)
+        return AIContext(current_state=self.state,
+            active_alerts=[Event(timestamp=a.last_seen,severity=a.severity,code=a.code,message=a.message,data=a.data) for a in self.alerts.active()],
+            recent_trip=TripSummary.model_validate(trips[0]) if trips else None,
+            baseline_deviations=[{'metric':name,**metric.stats()} for name,metric in self.baselines.metrics.items()],maintenance_due=[])
 
-    def set_bench_scenario(self, scenario: str) -> dict[str, Any]:
+    def source_status(self):
+        return {'adapter':self.source.name,'stale_after_s':self.source_config.stale_after_s,
+                'sources':[{'type':x.type,'enabled':x.enabled} for x in self.source_config.sources],
+                'simulator_active':self.simulator_active,'bench_active':self.bench_active,'data_origin':self.data_origin,
+                'bench':self.bench_status() if self.bench_active else None,'readiness':self.readiness(),
+                'source_errors':dict(getattr(self.source,'errors',{}))}
+
+    def bench_status(self):
+        return self.bench_controller.status() if self.bench_active else {'active':False}
+
+    def set_bench_scenario(self,scenario):
         if not self.bench_active:
-            raise RuntimeError("Bench source is not active")
+            raise RuntimeError('Bench source is not active')
         self.bench_controller.set_scenario(scenario)
-        return self.bench_controller.status()
+        return self.bench_status()
 
-    def reset_bench(self) -> dict[str, Any]:
+    def reset_bench(self):
         if not self.bench_active:
-            raise RuntimeError("Bench source is not active")
+            raise RuntimeError('Bench source is not active')
         self.bench_controller.reset()
-        return self.bench_controller.status()
+        return self.bench_status()
 
     def alert_snapshot(self):
         return self.alerts.snapshot()
@@ -277,15 +313,15 @@ class MGOBrainService:
     def fault_catalog(self):
         return self.simulator.faults.catalog() if self.simulator_active else []
 
-    def enable_fault(self, fault: FaultScenario | str):
+    def enable_fault(self,fault:FaultScenario|str):
         if not self.simulator_active:
-            raise RuntimeError("Simulator source is not active")
+            raise RuntimeError('Simulator source is not active')
         self.simulator.faults.enable(fault)
         return self.fault_catalog()
 
-    def disable_fault(self, fault: FaultScenario | str):
+    def disable_fault(self,fault:FaultScenario|str):
         if not self.simulator_active:
-            raise RuntimeError("Simulator source is not active")
+            raise RuntimeError('Simulator source is not active')
         self.simulator.faults.disable(fault)
         return self.fault_catalog()
 
@@ -298,36 +334,21 @@ class MGOBrainService:
     def analytics_summary(self):
         return self.analytics.summary()
 
-    def compare_trips(self, trip_a: int, trip_b: int) -> dict[str, Any] | None:
-        a_raw = self.store.get_trip(trip_a)
-        b_raw = self.store.get_trip(trip_b)
-        if not a_raw or not b_raw:
+    def compare_trips(self,trip_a:int,trip_b:int)->dict[str,Any]|None:
+        a=self.store.get_trip(trip_a)
+        b=self.store.get_trip(trip_b)
+        if not a or not b:
             return None
-        a = TripSummary.model_validate(a_raw)
-        b = TripSummary.model_validate(b_raw)
-        metrics = [
-            "distance_km", "duration_s", "avg_speed_kmh", "max_speed_kmh",
-            "max_coolant_c", "max_oil_temp_c", "min_oil_pressure_bar",
-            "avg_running_voltage_v", "avg_cvt_ratio_deviation_pct", "max_cvt_temp_c",
-        ]
-        comparison: dict[str, Any] = {}
+        metrics=('distance_km','duration_s','avg_speed_kmh','max_speed_kmh','max_coolant_c','max_oil_temp_c',
+                 'min_oil_pressure_bar','avg_running_voltage_v','avg_cvt_ratio_deviation_pct','max_cvt_temp_c')
+        comparison={}
         for name in metrics:
-            av = getattr(a, name)
-            bv = getattr(b, name)
-            if av is None or bv is None:
-                comparison[name] = {"a": av, "b": bv, "delta": None, "delta_pct": None}
-                continue
-            delta = bv - av
-            pct = delta / abs(av) * 100.0 if abs(av) > 1e-12 else None
-            comparison[name] = {"a": av, "b": bv, "delta": delta, "delta_pct": pct}
-        return {
-            "trip_a": a.model_dump(mode="json"),
-            "trip_b": b.model_dump(mode="json"),
-            "comparison": comparison,
-        }
+            av,bv=a.get(name),b.get(name)
+            delta=None if av is None or bv is None else bv-av
+            pct=delta/abs(av)*100.0 if delta is not None and abs(av)>1e-12 else None
+            comparison[name]={'a':av,'b':bv,'delta':delta,'delta_pct':pct}
+        return {'trip_a':a,'trip_b':b,'comparison':comparison}
 
 
-def _contains_source(source, name: str) -> bool:
-    if getattr(source, "name", None) == name:
-        return True
-    return any(_contains_source(item, name) for item in getattr(source, "adapters", []) or [])
+def _contains_source(source,name):
+    return getattr(source,'name',None)==name or any(_contains_source(a,name) for a in getattr(source,'adapters',[]) or [])

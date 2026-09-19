@@ -1,35 +1,27 @@
-from .models import SignalQuality, VehicleMode, VehicleState
-
-
-UNUSABLE = {SignalQuality.STALE, SignalQuality.MISSING, SignalQuality.INVALID}
-
-
-def _value(state: VehicleState, name: str, default=None):
-    reading = state.signals.get(name)
-    if reading is None or reading.quality in UNUSABLE:
-        return default
-    return reading.value
+from .models import VehicleMode, VehicleState
 
 
 def infer_mode(state: VehicleState) -> VehicleMode:
-    rpm = float(_value(state, "engine.rpm", 0) or 0)
-    speed = float(_value(state, "vehicle.speed", 0) or 0)
-    starter = bool(_value(state, "engine.starter_active", False))
-    glow = bool(_value(state, "engine.glow_active", False))
-    ignition = bool(_value(state, "electrical.ignition", False))
-    acc = bool(_value(state, "electrical.acc", False))
-    gear = str(_value(state, "transmission.gear", "N"))
-
-    if starter:
+    rpm = state.value("engine.rpm")
+    speed = state.value("vehicle.speed")
+    starter = state.value("engine.starter_active")
+    glow = state.value("engine.glow_active")
+    ignition = state.value("electrical.ignition")
+    acc = state.value("electrical.acc")
+    gear = state.value("transmission.gear")
+    # Unknown inputs are not evidence that the engine is OFF.
+    if all(x is None for x in (rpm, starter, glow, ignition, acc)):
+        return VehicleMode.UNKNOWN
+    if starter is True:
         return VehicleMode.CRANKING
-    if glow and rpm < 300:
+    if glow is True and (rpm is None or rpm < 300):
         return VehicleMode.PREHEAT
-    if rpm >= 400:
-        if speed > 0.7:
+    if isinstance(rpm, (float, int)) and not isinstance(rpm, bool) and rpm >= 400:
+        if isinstance(speed, (float, int)) and speed > 0.7:
             return VehicleMode.REVERSING if gear == "R" else VehicleMode.DRIVING
-        return VehicleMode.IDLE
-    if ignition:
+        return VehicleMode.IDLE if speed is not None else VehicleMode.ENGINE_RUNNING
+    if ignition is True:
         return VehicleMode.IGNITION
-    if acc:
+    if acc is True:
         return VehicleMode.ACC
-    return VehicleMode.OFF
+    return VehicleMode.OFF if ignition is False or rpm == 0 else VehicleMode.UNKNOWN

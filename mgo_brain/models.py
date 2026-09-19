@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 def utcnow() -> datetime:
@@ -20,6 +21,7 @@ class SignalQuality(StrEnum):
 
 
 class VehicleMode(StrEnum):
+    UNKNOWN = "UNKNOWN"
     OFF = "OFF"
     ACC = "ACC"
     IGNITION = "IGNITION"
@@ -46,15 +48,40 @@ class SignalReading(BaseModel):
     source: str = "unknown"
     timestamp: datetime = Field(default_factory=utcnow)
 
+    @field_validator("timestamp")
+    @classmethod
+    def aware_timestamp(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Signal timestamps must include a timezone")
+        return value.astimezone(timezone.utc)
+
+    @model_validator(mode="after")
+    def finite_scalar(self):
+        # Keep the failure as evidence without poisoning JSON, rules or baselines.
+        if isinstance(self.value, float) and not math.isfinite(self.value):
+            self.value = None
+            self.quality = SignalQuality.INVALID
+        elif self.value is not None and not isinstance(self.value, (str, int, float, bool)):
+            self.value = None
+            self.quality = SignalQuality.INVALID
+        return self
+
+    @property
+    def usable(self) -> bool:
+        return self.quality == SignalQuality.GOOD and self.value is not None and not (
+            isinstance(self.value, float) and not math.isfinite(self.value)
+        )
+
 
 class VehicleState(BaseModel):
     timestamp: datetime = Field(default_factory=utcnow)
-    mode: VehicleMode = VehicleMode.OFF
+    mode: VehicleMode = VehicleMode.UNKNOWN
     signals: dict[str, SignalReading] = Field(default_factory=dict)
 
     def value(self, name: str, default: Any = None) -> Any:
+        """Value for computation. Inspect .signals for raw diagnostic evidence."""
         reading = self.signals.get(name)
-        return default if reading is None else reading.value
+        return reading.value if reading is not None and reading.usable else default
 
 
 class Event(BaseModel):

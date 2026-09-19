@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from datetime import datetime, timezone
 
@@ -7,88 +8,58 @@ from ..models import SignalQuality, SignalReading, VehicleState
 from ..state_machine import infer_mode
 from .base import SourceUpdate
 
-
-QUALITY_RANK = {
-    SignalQuality.INVALID: 0,
-    SignalQuality.MISSING: 1,
-    SignalQuality.STALE: 2,
-    SignalQuality.SUSPECT: 3,
-    SignalQuality.UNVERIFIED: 4,
-    SignalQuality.GOOD: 5,
-}
+QUALITY_RANK = {SignalQuality.INVALID:0, SignalQuality.MISSING:1, SignalQuality.STALE:2,
+                SignalQuality.UNVERIFIED:3, SignalQuality.SUSPECT:4, SignalQuality.GOOD:5}
 
 
 class StateAggregator:
-    """Merge partial SourceUpdates into one canonical VehicleState.
-
-    Preferred source order is honored while the preferred reading is fresh.
-    Once it ages beyond stale_after_s, a fresh lower-priority fallback may take over.
-    """
-
-    def __init__(
-        self,
-        *,
-        stale_after_s: float = 3.0,
-        preferred_sources: Mapping[str, list[str] | tuple[str, ...]] | None = None,
-    ):
+    """Latest reading per signal AND source; failures supersede old healthy readings."""
+    def __init__(self, *, stale_after_s: float = 3.0,
+                 preferred_sources: Mapping[str, list[str] | tuple[str, ...]] | None = None):
+        if not math.isfinite(stale_after_s) or stale_after_s <= 0:
+            raise ValueError("stale_after_s must be finite and positive")
         self.stale_after_s = float(stale_after_s)
-        self.preferred_sources = {k: tuple(v) for k, v in (preferred_sources or {}).items()}
-        self._signals: dict[str, SignalReading] = {}
+        self.preferred_sources = {k:tuple(v) for k,v in (preferred_sources or {}).items()}
+        self._readings: dict[str, dict[str, SignalReading]] = {}
+        self._watermark: datetime | None = None
 
     def apply(self, update: SourceUpdate, *, now: datetime | None = None) -> VehicleState:
-        decision_time = now or update.timestamp or datetime.now(timezone.utc)
+        decision = now or update.timestamp
+        if decision.tzinfo is None:
+            raise ValueError("Source time must be timezone-aware")
+        decision = max(decision, self._watermark) if self._watermark else decision
+        self._watermark = decision
         for name, incoming in update.signals.items():
-            current = self._signals.get(name)
-            if current is None or self._prefer(name, incoming, current, decision_time):
-                self._signals[name] = incoming.model_copy(deep=True)
-
-        return self.snapshot(now=decision_time)
+            by_source = self._readings.setdefault(name, {})
+            previous = by_source.get(incoming.source)
+            if previous is not None and incoming.timestamp < previous.timestamp:
+                continue
+            # Do not retain an older GOOD reading when the same sensor reports failure.
+            item = incoming.model_copy(deep=True)
+            if item.timestamp > decision:
+                item.quality = SignalQuality.INVALID
+            by_source[item.source] = item
+        return self.snapshot(now=decision)
 
     def snapshot(self, *, now: datetime | None = None) -> VehicleState:
         ts = now or datetime.now(timezone.utc)
-        signals = {
-            name: self._with_age_quality(reading, ts)
-            for name, reading in self._signals.items()
-        }
+        signals = {}
+        for name, readings in self._readings.items():
+            candidates = [self._with_age_quality(r, ts) for r in readings.values()]
+            pref = self.preferred_sources.get(name, ())
+            signals[name] = max(candidates, key=lambda r: (
+                QUALITY_RANK[r.quality], -_source_rank(r.source,pref), r.timestamp
+            ))
         state = VehicleState(timestamp=ts, signals=signals)
         state.mode = infer_mode(state)
         return state
 
-    def _prefer(
-        self,
-        name: str,
-        incoming: SignalReading,
-        current: SignalReading,
-        now: datetime,
-    ) -> bool:
-        current_age = max(0.0, (now - current.timestamp).total_seconds())
-        current_is_stale = current_age > self.stale_after_s or current.quality == SignalQuality.STALE
-        incoming_is_live = incoming.quality not in {
-            SignalQuality.STALE,
-            SignalQuality.INVALID,
-            SignalQuality.MISSING,
-        }
-        if current_is_stale and incoming_is_live:
-            return True
-
-        incoming_rank = QUALITY_RANK.get(incoming.quality, 0)
-        current_rank = QUALITY_RANK.get(current.quality, 0)
-        if incoming_rank != current_rank:
-            return incoming_rank > current_rank
-
-        pref = self.preferred_sources.get(name, ())
-        if pref:
-            i = _source_rank(incoming.source, pref)
-            c = _source_rank(current.source, pref)
-            if i != c:
-                return i < c
-
-        return incoming.timestamp >= current.timestamp
-
     def _with_age_quality(self, reading: SignalReading, now: datetime) -> SignalReading:
         out = reading.model_copy(deep=True)
-        age_s = max(0.0, (now - out.timestamp).total_seconds())
-        if age_s > self.stale_after_s and out.quality not in {SignalQuality.INVALID, SignalQuality.MISSING}:
+        age = (now - out.timestamp).total_seconds()
+        if age < -0.001:
+            out.quality = SignalQuality.INVALID
+        elif age > self.stale_after_s and out.quality not in {SignalQuality.INVALID, SignalQuality.MISSING}:
             out.quality = SignalQuality.STALE
         return out
 
