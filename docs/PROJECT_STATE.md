@@ -1,65 +1,11 @@
-> Актуальная проверенная точка: **v0.5.10**, аудит 19.09.2026. Начните с [русской точки входа](../START_HERE_RU.md). Более ранние отметки «готово» ниже относятся к программным прототипам, не к проверке автомобиля.
+# Project state / текущее состояние
 
-# Project State
+Контрольная точка **v0.5.10 — аудит и передача контекста**, 19.09.2026.
 
-Last updated: 2026-09-19.
+Начало: [START_HERE_RU.md](../START_HERE_RU.md). Полная передача: [CHAT_HANDOFF_RU.md](CHAT_HANDOFF_RU.md).
 
-Current release: **v0.5.9 — Bench / Integration Simulation Pack**.
+Исполняемый программный прототип существует; старые функциональные тесты дополнены регрессиями на потерю качества/источников, EOF, отказ хранения, происхождение данных и границы протоколов. Результаты сохраняются в [аудитном архиве](audit/2026-09-19/README.md).
 
-## State
+Физическая интеграция не выполнена. Не подтверждены CAN-пара/bitrate/DBC, GPIO/электрические подключения, резьбы/патрубки, power management и монтаж конкретных устройств. Полноценный protocol-level bench, квалифицированные диагностические пороги, crash recovery, сложная baseline-статистика и защищённый удалённый доступ ещё требуют работы.
 
-The software, research tooling, deployment tooling, repository canon and read-only AI question layer are prepared for first physical vehicle integration.
-
-## Ready
-
-- live backend / PWA architecture;
-- simulator / fault lab;
-- diagnostics and quality handling;
-- trip/history/baselines;
-- hardware abstraction;
-- passive CAN recording/replay;
-- binary and numeric reverse-engineering tools;
-- evidence-session storage;
-- deployment / doctor / backup;
-- kiosk display launcher;
-- repo-first documentation / ADR / safety / BOM / runbooks;
-- Ask MGO local evidence gateway;
-- optional OpenAI provider boundary with precise-location redaction by default;
-- Russian-first driver-facing UI with English fallback;
-- complete multi-source integration bench covering ingestion → health/rules → history → Ask MGO.
-
-## AI safety boundary
-
-- AI is read-only.
-- Default provider is local.
-- External AI is opt-in.
-- No vehicle-control tools exist.
-- Deterministic local CRITICAL/ATTENTION logic remains independent.
-- Raw high-volume CAN/audio/video is excluded from normal AI context.
-- Precise latitude/longitude is redacted before external AI by default.
-
-## Not yet evidenced on the actual vehicle
-
-- CAN pair location;
-- connector pins / wire colors;
-- CAN bitrate;
-- CAN IDs/signals;
-- actual stock CAN coverage;
-- physical sensor threads/dimensions;
-- permanent mounting / cable routing;
-- final dedicated display geometry.
-
-## Current blocker
-
-Access to the physical vehicle for the first controlled electrical/CAN survey.
-
-## Next success criterion
-
-Leave the first survey with:
-
-- photographs;
-- measured CAN topology;
-- bitrate;
-- passive logs;
-- at least one repeatable candidate signal;
-- unchanged factory vehicle behavior.
+Не считать физическую разведку единственным оставшимся блокером. Пользователь ранее откладывал её; полезная программная работа перечислена в [REMAINING_WORK_RU.md](REMAINING_WORK_RU.md).

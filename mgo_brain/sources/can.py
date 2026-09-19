@@ -22,7 +22,7 @@ class RawCANTransport(Protocol):
 
 
 def verify_listen_only(channel: str) -> None:
-    """Read Linux link configuration; never change it or transmit on the bus."""
+    """Inspect Linux link state without changing it or transmitting any frame."""
     result = subprocess.run(['ip', '-details', '-json', 'link', 'show', 'dev', channel],
                             check=True, capture_output=True, text=True, timeout=3)
     links = json.loads(result.stdout)
@@ -30,18 +30,20 @@ def verify_listen_only(channel: str) -> None:
         raise RuntimeError('Cannot verify CAN link configuration')
     info = links[0].get('linkinfo', {})
     if info.get('info_kind') == 'vcan':
-        return  # Linux virtual CAN has no physical wire to disturb.
-    modes = info.get('info_data', {}).get('ctrlmode', [])
-    mode_text = json.dumps(modes).upper().replace('_', '-')
-    if info.get('info_kind') != 'can' or 'LISTEN-ONLY' not in mode_text or 'UP' not in links[0].get('flags', []):
+        return
+    raw_modes = info.get('info_data', {}).get('ctrlmode', [])
+    if isinstance(raw_modes, dict):
+        raw_modes = [name for name, enabled in raw_modes.items() if enabled is True]
+    modes = {str(name).upper().replace('_', '-') for name in raw_modes} if isinstance(raw_modes, list) else set()
+    if info.get('info_kind') != 'can' or 'LISTEN-ONLY' not in modes or 'UP' not in links[0].get('flags', []):
         raise RuntimeError('Factory CAN must be UP and OS-configured LISTEN-ONLY before use')
 
 
 class SocketCANTransport:
-    """Receive-only CAN wrapper. Factory interface mode is verified on open.
+    """Receive-only wrapper; factory interface silent mode is verified on open.
 
-    Sensor CAN can explicitly opt out of silent mode because it is a separate bus.
-    No send API is exposed by this wrapper.
+    Separate private Sensor CAN can explicitly opt out of silent mode. No send
+    method is exposed. Injected bus factories are for controlled test transports.
     """
     def __init__(self, channel: str, *, bus_factory=None, receive_timeout_s: float = 1.0,
                  require_listen_only: bool = True, **bus_kwargs: Any):
@@ -72,7 +74,6 @@ class SocketCANTransport:
         msg = await asyncio.to_thread(self._bus.recv, self.receive_timeout_s if timeout is None else timeout)
         if msg is None:
             return None
-        # Preserve the documented classic-CAN boundary instead of interpreting FD/RTR/error data.
         if getattr(msg, 'is_remote_frame', False) or getattr(msg, 'is_error_frame', False) or getattr(msg, 'is_fd', False):
             return None
         timestamp = float(getattr(msg, 'timestamp', 0.0) or 0.0)

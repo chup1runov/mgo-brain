@@ -1,107 +1,18 @@
-> Актуальная проверенная точка: **v0.5.10**, аудит 19.09.2026. Начните с [русской точки входа](../START_HERE_RU.md). Более ранние отметки «готово» ниже относятся к программным прототипам, не к проверке автомобиля.
+# MGO Brain project handoff
 
-# MGO Brain Project Handoff
+Current checkpoint: **v0.5.10**, 2026-09-19.
 
-## Canon
+The authoritative continuation guide is now [START_HERE_RU.md](../START_HERE_RU.md).
 
-GitHub is the canonical **MGO Brain** engineering record. Chat is a working environment, not the durable source of truth.
+Read, in order:
 
-Start with:
+1. [Chat decisions and context](CHAT_HANDOFF_RU.md).
+2. [Corrections to prior claims](CLAIMS_AND_CORRECTIONS_RU.md).
+3. [Audit scope and findings](AUDIT_2026-09-19_RU.md).
+4. [Open engineering work](REMAINING_WORK_RU.md).
+5. [Source and asset provenance](SOURCE_MANIFEST_RU.md).
+6. [Recovery and new-chat prompt](RECOVERY_RU.md).
 
-- `PROJECT.md`
-- `docs/INDEX.md`
-- `docs/PROJECT_STATE.md`
-- `docs/ROADMAP.md`
-- `docs/OPEN_QUESTIONS.md`
+Scope is MGO Brain / Microcar only. Hardware candidates and synthetic data are not real-vehicle evidence. The next agent must check actual main SHA and Actions results before reporting status. The owner asked for substantive code, documentation, evidence, uncertainties and decisions to live in GitHub so this chat is no longer required.
 
-## North Star
-
-Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into a deeply observable vehicle without replacing or controlling its factory safety-critical systems.
-
-## Current release
-
-`v0.5.9`
-
-## Implemented software
-
-- canonical signal / VehicleState model;
-- simulator and fault lab;
-- deterministic rules, alert lifecycle and subsystem health;
-- SQLite metadata + Parquet/DuckDB historical analytics;
-- reference/rolling baselines and reports;
-- local PWA console;
-- hardware SourceAdapter / SourceMux / StateAggregator;
-- receive-only SocketCAN abstraction;
-- DBC, SensorHub CAN, Modbus, VE.Direct, TPMS and GNSS/IMU integration boundaries;
-- signal freshness / STALE handling and fallback;
-- binary CAN Survey Toolkit;
-- receive-only CAN recording and offline replay;
-- persistent survey evidence sessions;
-- deployment systemd/mDNS/doctor/backup pack;
-- dedicated-display kiosk launcher;
-- numeric CAN discovery against an external reference time series;
-- Ask MGO read-only AI Gateway with local fallback and optional OpenAI provider;
-- Russian-first driver UI with English fallback and unchanged canonical signal/API names;
-- complete multi-source integration bench with scenario injection and headless E2E smoke test.
-
-## Engineering canon added in v0.5.6
-
-- MGO Brain repo-first project policy;
-- safety and evidence policies;
-- vehicle baseline;
-- hardware BOM / machine-readable hardware plan;
-- installation plan;
-- first vehicle day runbook;
-- signal catalog semantics;
-- unresolved questions registry;
-- data/privacy and AI design;
-- testing / release / recovery documentation;
-- external references and glossary;
-- architecture decision records;
-- standard GitHub contribution/security/repository files;
-- CI repository-canon test.
-
-## Planned installed topology
-
-1. AutoPi TMU CM4 or equivalent automotive Linux computer.
-2. CAN0: factory MGO BFI/CAN, OS-configured listen-only during discovery.
-3. CAN1: private Sensor CAN.
-4. ESP32-S3 SensorHub.
-5. Isolated Modbus/RS485 inputs when OEM states are not available over CAN.
-6. Independent engine/CVT/power/TPMS/environment sensors as needed.
-7. Phone/browser first; dedicated display optional later.
-
-## Non-negotiable safety rules
-
-- never guess factory pins/wire colors;
-- never transmit to factory CAN during discovery;
-- never assume/add CAN termination before measuring topology;
-- MGO Brain must not be required for engine start, braking, gear selection or OEM critical warnings;
-- critical alerts work without AI/Internet;
-- historical analytics are outside the real-time safety path;
-- stale data is not current evidence.
-
-## Ask MGO safety boundary
-
-- default provider is local;
-- external AI is opt-in;
-- AI tools are read-only;
-- no CAN transmit / starter / D/N/R / throttle / brake / steering / glow-control tools exist;
-- deterministic local alerts remain authoritative;
-- exact GNSS coordinates are redacted before external AI by default;
-- raw high-volume CAN/audio/video is not sent as normal AI context.
-
-## Next milestone
-
-The useful offline software/tooling work is largely complete. The next evidence-producing milestone requires the actual vehicle:
-
-1. photograph BFI/fuse box and relevant harnesses;
-2. identify candidate CAN pair;
-3. measure bus resistance with power off;
-4. determine bitrate;
-5. configure Linux CAN listen-only;
-6. record passive logs;
-7. run controlled one-variable experiments;
-8. begin the first evidence-backed `MGO4_CAN.dbc`.
-
-After that, v0.6 begins first real vehicle data integration.
+Keep the source protocol, local diagnostics, history and UI distinct. Do not turn the observer into a vehicle controller. Preserve OEM operation and warnings. All physical mappings remain pending until verified.

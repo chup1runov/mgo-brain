@@ -1,156 +1,51 @@
 # Changelog
 
-## [0.5.9] - 2026-09-19
+## [0.5.10] — 2026-09-19 — Audit and chat-independent handoff
 
 ### Added
-- Multi-source integration bench with independent CAN, SensorHub, SmartShunt, Modbus, TPMS and GNSS channels.
-- 24-second start/drive/stop bench cycle with configurable time scaling.
-- Normal, weak-battery, undercharge, low-oil-pressure, overheat, CVT-overheat and SensorHub-dropout scenarios.
-- Bench source configuration and `MGO_BRAIN_SOURCES_FILE` override.
-- Bench status/scenario/reset REST API.
-- LAB bench controls.
-- `mgo-bench-smoke` end-to-end CLI.
-- End-to-end start/trip/health/alert/Ask MGO regression tests.
-- `docs/BENCH.md`.
+- Russian entry point, complete material chat handoff, corrections register, explicit engineering backlog and recovery/new-chat instructions.
+- Whole-repository inventory with content hashes, Python/JSON/JavaScript syntax checks and local Markdown-link checks.
+- Real Chromium desktop/mobile smoke checks, RU/EN, local AI language and stale-value behavior.
+- Regression coverage for unusable/non-finite data, source fallback/failure, alert lifecycle, storage failure, namespace separation, protocol validation and bounded requests.
+- Persistent audit evidence under docs/audit/2026-09-19, separate from expiring Actions artifacts.
+- Actual non-root Docker build/start smoke workflow.
+- Original chat asset checksum manifest; original PNG bytes remain in the explicitly supplied separate backup archive.
 
-## [0.5.8] - 2026-09-19
+### Fixed
+- Unverified/stale/invalid values no longer act as current numeric evidence.
+- A sensor failure supersedes its older GOOD reading; source fallback candidates are retained.
+- No-source and all-unknown states no longer silently report a healthy running vehicle.
+- Heartbeat ages values when all sources go silent; source EOF/failure is visible.
+- Local alerts run before optional history work; history/Parquet failures are surfaced without suppressing current alerts.
+- Missing evidence does not clear an active critical alert; severity escalation is a transition.
+- Simulated/bench/vehicle storage is separated; no automatic import of old simulated history into a real baseline.
+- Empty Modbus replies are INVALID rather than invented zero/False.
+- VE.Direct byte framing/checksum validation; legacy text-only results remain UNVERIFIED.
+- Factory CAN checks Linux listen-only mode before physical opening.
+- Replay EOF and observed-DLC DBC draft handling.
+- Request-body cap, browser Origin checks, default localhost bind and Docker-context exclusions.
+- Explicit cloud-model configuration, bounded AI timeout/output, language propagation and local fallback on external failure.
+- Backup output/symlink restrictions and Chromium update suppression removed.
 
-### Added
-- Russian default driver-facing PWA localization.
-- English fallback through `?lang=en`.
-- RU/EN header toggle.
-- Localized status, subsystem, vehicle-mode, maintenance and dynamic trip/start labels.
-- Russian PWA manifest metadata.
-- Localization regression tests.
+### Still not claimed
+- No real vehicle hardware qualification, confirmed MGO DBC, validated manufacturer thresholds, certified safety or universal diagnostic accuracy.
+- See docs/REMAINING_WORK_RU.md for packaging, protocol-level bench, crash recovery, baseline, time-integration, security and hardware work.
 
-### Preserved
-- Canonical signal/API names remain language-neutral and unchanged.
+## Historical milestones
 
-## [0.5.7] - 2026-09-19
+The original changes and documents are preserved in Git history and docs/ROADMAP.md.
 
-### Added
-- Ask MGO read-only evidence toolbox.
-- Deterministic question-to-tool router.
-- Local no-cloud fallback provider.
-- Optional OpenAI Responses API provider.
-- External-AI precise location redaction by default.
-- Evidence compaction and high-volume raw-field exclusion.
-- AI status/tools/evidence/ask API.
-- Russian Ask MGO panel on HOME.
-- `mgo-ask` CLI.
-- Optional `ai` dependency group and dedicated CI job.
-- Machine-readable `config/ai-policy.json`.
-- ADR-0007 and updated AI Gateway documentation.
-
-## [0.5.6] - 2026-09-18
-
-### Added
-- MGO Brain repo-first project policy.
-- Documentation index and project-state snapshot.
-- Vehicle baseline, hardware BOM and machine-readable hardware plan.
-- Installation and first-vehicle-day runbooks.
-- Dedicated safety and engineering-evidence policies.
-- Signal-catalog semantics and unresolved-question registry.
-- Data/privacy, AI gateway, testing, release and backup/recovery documentation.
-- External reference index and glossary.
-- Architecture Decision Records.
-- LICENSE, CONTRIBUTING, SECURITY, CODEOWNERS, PR/issue templates and Dependabot.
-- Broader runtime/private-data Git exclusions.
-- Machine-readable project metadata and deployment vehicle-profile example.
-- CI repository-canon test.
-
-## [0.5.5] - 2026-09-18
-
-### Added
-- Numeric CAN field discovery against timestamped reference data.
-- u8/s8 and u16 LE/BE signed/unsigned candidate extraction.
-- Linear regression, correlation, R² and RMSE ranking.
-- Counter-likeness penalty to reduce false positives.
-- Synthetic varied-speed test dataset.
-- Numeric discovery REST API and LAB UI.
-- `mgo-discover-numeric` CLI.
-- `docs/NUMERIC_DISCOVERY.md`.
-
-## [0.5.4] - 2026-09-18
-
-### Added
-- Dedicated-screen `mgo-kiosk` launcher.
-- Backend readiness polling before browser launch.
-- Chromium/Chrome discovery and kiosk command profile.
-- User-level systemd kiosk service.
-- Kiosk environment template.
-- PWA `?kiosk=1` mode and Screen Wake Lock request.
-- Display/kiosk tests.
-- `docs/KIOSK.md`.
-
-## [0.5.3] - 2026-09-18
-
-### Added
-- Environment-driven runtime data/config paths.
-- systemd vehicle-service template.
-- Avahi HTTP service descriptor.
-- `mgo-doctor` deployment preflight.
-- `mgo-backup` consistent data/config archive.
-- SQLite backup via the SQLite backup API.
-- Deployment layout and runtime-settings tests.
-- `deployment/README.md`.
-
-## [0.5.2] - 2026-09-18
-
-### Added
-- Receive-only CAN recorder with standard candump output.
-- Offline candump replay transport with timing scaling.
-- Persistent survey-session evidence store.
-- Saved-session LAB workflow and API.
-- `mgo-can-record`, `mgo-can-replay` and `mgo-survey-session` commands.
-- Recorder/replay/session round-trip tests.
-- `docs/COMMISSIONING.md`.
-
-## [0.5.1] - 2026-09-18
-
-### Added
-- CAN/candump parser for hash and bracket formats.
-- Baseline-vs-action CAN differential analyzer.
-- Ranking of candidate CAN IDs and changed byte positions.
-- Noise-aware scoring for stable toggles vs counters.
-- Safe message-only DBC draft generation.
-- Survey sample dataset for demonstration/testing.
-- Survey REST API.
-- `mgo-survey` CLI.
-- LAB UI for paste/analyze workflow.
-- `docs/CAN_SURVEY.md`.
-
-## [0.5.0] - 2026-09-18
-
-### Added
-- `SourceAdapter` and partial `SourceUpdate` contract.
-- `SourceMux` for concurrent source fan-in.
-- `StateAggregator` with signal freshness, quality and preferred-source fallback.
-- Receive-only SocketCAN transport wrapper.
-- Lazy DBC decoder and canonical signal mapping.
-- SensorHub CAN v1 codec and source adapter.
-- Modbus digital/analog source adapters plus optional pymodbus transport.
-- VE.Direct text parser/adapter plus optional serial transport.
-- Generic TPMS source adapter.
-- Generic GNSS/IMU source adapter.
-- Runtime source configuration and builder registry.
-- `GET /api/v1/sources`.
-- Optional `hardware` dependency group and dedicated CI job.
-
-### Changed
-- Core service now consumes SourceUpdates through StateAggregator instead of directly consuming MGOSimulator VehicleState.
-- State machine ignores STALE/MISSING/INVALID signals.
-- Health readiness no longer treats stale sensor sets as healthy.
-- Setuptools package discovery now includes `mgo_brain*` subpackages.
-
-## [0.4.0] - 2026-09-18
-- Seven-view local PWA console and offline shell.
-
-## [0.3.0] - 2026-09-18
-- Historical Parquet/DuckDB analytics and baselines.
-
-## [0.2.0] - 2026-09-18
-- Fault laboratory, alert lifecycle and subsystem health.
-
-## [0.1.0] - 2026-09-18
-- Initial software foundation.
+- 0.5.9: multi-source software integration bench, not a physical protocol bench.
+- 0.5.8: Russian-first driver UI.
+- 0.5.7: Ask MGO read-only gateway and optional cloud provider.
+- 0.5.6: project repository canon and engineering documents.
+- 0.5.5: numeric CAN candidate discovery.
+- 0.5.4: dedicated-display/kiosk scaffolding.
+- 0.5.3: deployment, doctor and backup scaffolding.
+- 0.5.2: recording/replay and survey sessions.
+- 0.5.1: differential CAN survey toolkit.
+- 0.5.0: hardware source abstraction.
+- 0.4.0: local web console.
+- 0.3.0: historical analytics and simple baselines.
+- 0.2.0: fault scenarios and health/alert model.
+- 0.1.0: simulator, canonical state, storage and API foundation.

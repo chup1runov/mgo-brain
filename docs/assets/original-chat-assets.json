@@ -1,0 +1,33 @@
+{
+  "recorded_at": "2026-09-19",
+  "scope": "Original concept files accessible in the MGO Brain chat runtime; not vehicle data",
+  "repository_content": "Visual intent in UI_CONCEPT.md; actual synthetic Chromium screenshots in docs/audit/2026-09-19",
+  "original_png_location": "Separate MGO_Brain_original_chat_assets.zip handed to the owner; original PNG bytes are not in this repository",
+  "backup": {
+    "filename": "MGO_Brain_original_chat_assets.zip",
+    "bytes": 3344942,
+    "sha256": "4bd2902be545b4707af844367e953bbead3430c2e87710de17371095221fa16a"
+  },
+  "files": [
+    {
+      "name": "dashboard-concept-ru.png",
+      "original_attachment": "a_wide_high_resolution_dark_themed_dashboard_ui_i.png",
+      "bytes": 1819586,
+      "sha256": "1a79cb153e11fed4853ebbbf8328306bdacb952f70619b1d203491f44d1f138d",
+      "status": "AI-generated visual concept; not measured telemetry"
+    },
+    {
+      "name": "dashboard-concept-en.png",
+      "original_attachment": "a_widescreen_dark_themed_dashboard_ui_mockup_for.png",
+      "bytes": 1681287,
+      "sha256": "02437f348ee603041fb8602a513e32a929c399069c3667641392cc56599e4adf",
+      "status": "Earlier English visual concept; not the implemented UI"
+    },
+    {
+      "name": "historical/mgo-brain-v0.1.zip",
+      "bytes": 19505,
+      "sha256": "f5c83bc7cb4b8d735248e6dc07d6d52da6b2c3674595bc3bf6e8a8c506b95cd0",
+      "status": "Historical prototype only; current code is in Git"
+    }
+  ]
+}

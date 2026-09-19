@@ -1,0 +1,38 @@
+name: Docker smoke
+on:
+  push:
+    branches: [main, 'audit/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build without runtime data or secrets
+        run: docker build -t mgo-brain-audit .
+      - name: Start non-root local-only smoke container
+        run: docker run -d --name mgo-audit -p 127.0.0.1:18080:8080 -e MGO_AI_PROVIDER=local mgo-brain-audit
+      - name: Verify readiness, data origin and UI
+        run: |
+          python3 - <<'PY'
+          import json,time,urllib.request
+          for _ in range(60):
+              try:
+                  data=json.load(urllib.request.urlopen('http://127.0.0.1:18080/health',timeout=1))
+                  assert data['ready'] and data['data_origin']=='simulator'
+                  break
+              except Exception:
+                  time.sleep(0.5)
+          else:
+              raise RuntimeError('Docker backend did not become ready')
+          html=urllib.request.urlopen('http://127.0.0.1:18080/').read().decode()
+          assert '<html lang="ru">' in html
+          print('DOCKER_SMOKE_OK')
+          PY
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          docker logs mgo-audit || true
+          docker rm -f mgo-audit || true
