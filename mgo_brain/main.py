@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.7", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.8", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
@@ -53,7 +53,7 @@ def dashboard():
 def health():
     return {
         "status": "ok",
-        "version": "0.5.7",
+        "version": "0.5.8",
         "source": service.source.name,
         "analytics": service.analytics.available(),
         "data_dir": str(settings.data_dir),

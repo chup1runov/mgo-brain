@@ -1,5 +1,5 @@
-const CACHE='mgo-brain-v057-shell';
-const SHELL=['/','/manifest.webmanifest','/static/icon.svg'];
+const CACHE='mgo-brain-v058-shell';
+const SHELL=['/','/manifest.webmanifest','/static/icon.svg','/static/i18n.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener('fetch',event=>{

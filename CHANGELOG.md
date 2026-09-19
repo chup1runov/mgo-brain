@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.8] - 2026-09-19
+
+### Added
+- Russian default driver-facing PWA localization.
+- English fallback through `?lang=en`.
+- RU/EN header toggle.
+- Localized status, subsystem, vehicle-mode, maintenance and dynamic trip/start labels.
+- Russian PWA manifest metadata.
+- Localization regression tests.
+
+### Preserved
+- Canonical signal/API names remain language-neutral and unchanged.
+
 ## [0.5.7] - 2026-09-19
 
 ### Added

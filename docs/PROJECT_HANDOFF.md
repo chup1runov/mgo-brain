@@ -18,7 +18,7 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 
 ## Current release
 
-`v0.5.7`
+`v0.5.8`
 
 ## Implemented software
 
@@ -38,7 +38,8 @@ Turn the 2017 Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502 into 
 - deployment systemd/mDNS/doctor/backup pack;
 - dedicated-display kiosk launcher;
 - numeric CAN discovery against an external reference time series;
-- Ask MGO read-only AI Gateway with local fallback and optional OpenAI provider.
+- Ask MGO read-only AI Gateway with local fallback and optional OpenAI provider;
+- Russian-first driver UI with English fallback and unchanged canonical signal/API names.
 
 ## Engineering canon added in v0.5.6
 

@@ -2,7 +2,7 @@
 
 Last updated: 2026-09-19.
 
-Current release: **v0.5.7 — Ask MGO / AI Gateway**.
+Current release: **v0.5.8 — Russian Driver UI & Localization**.
 
 ## State
 
@@ -22,7 +22,8 @@ The software, research tooling, deployment tooling, repository canon and read-on
 - kiosk display launcher;
 - repo-first documentation / ADR / safety / BOM / runbooks;
 - Ask MGO local evidence gateway;
-- optional OpenAI provider boundary with precise-location redaction by default.
+- optional OpenAI provider boundary with precise-location redaction by default;
+- Russian-first driver-facing UI with English fallback.
 
 ## AI safety boundary
 

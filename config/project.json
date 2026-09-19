@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "project_name": "MGO Brain",
   "repository_role": "canonical engineering source of truth",
-  "current_release": "0.5.7",
+  "current_release": "0.5.8",
   "vehicle_platform": {
     "family": "Microcar M.Go / F8 0.5",
     "model_year": 2017,
@@ -16,6 +16,7 @@
     "Unverified vehicle mappings remain hypotheses."
   ],
   "capabilities": [
-    "ask_mgo_ai_gateway"
+    "ask_mgo_ai_gateway",
+    "russian_driver_ui"
   ]
 }

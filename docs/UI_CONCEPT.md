@@ -152,6 +152,11 @@ Dedicated 7–10 inch display is optional later and runs the same UI in `?kiosk=
 
 The display remains a client. Telemetry/logging/alerts continue if the screen/browser fails.
 
-## Localization TODO
+## Localization status
 
-The current working PWA contains English engineering labels. Russian localization should be completed before the driver-facing v1.0 release without changing canonical signal/API names.
+v0.5.8 implements Russian as the default driver-facing language.
+
+- Russian: default.
+- English: fallback via `?lang=en` or the RU/EN toggle.
+- canonical signal/API names remain unchanged;
+- LAB may still expose engineering identifiers where exact code/CAN terminology matters.

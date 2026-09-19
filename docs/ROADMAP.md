@@ -78,6 +78,18 @@
 - [x] Optional AI dependency CI job.
 - [x] AI safety/privacy regression tests.
 
+### v0.5.8 — Russian Driver UI & Localization
+- [x] Russian default PWA language.
+- [x] English fallback via `?lang=en`.
+- [x] RU/EN header toggle.
+- [x] Localized subsystem/status/mode labels.
+- [x] Localized maintenance labels.
+- [x] Localized driver-facing trip/start strings.
+- [x] Ask MGO language follows UI language.
+- [x] Russian PWA manifest metadata.
+- [x] Localization regression tests.
+- [x] Canonical API/signal identifiers remain unchanged.
+
 ## Next physical milestone — Hardware Survey
 
 - [ ] Photograph BFI/fuse-box wiring.
