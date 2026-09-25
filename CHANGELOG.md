@@ -12,8 +12,6 @@
 ### Changed
 - Docker installs the package normally instead of relying on an editable checkout.
 - Default installed-wheel state directory uses per-user local storage unless overridden.
-- GitHub Actions use current major releases.
-- cantools compatibility range extended to <45 and remains covered by hardware CI.
 - Health response no longer exposes local data/config filesystem paths.
 
 ### Still experimental

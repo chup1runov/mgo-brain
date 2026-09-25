@@ -111,7 +111,6 @@
 - [x] Normal wheel-install support outside a source checkout.
 - [x] Docker uses a non-editable installed package.
 - [x] Health endpoint no longer exposes local filesystem paths.
-- [x] GitHub Actions upgraded to current major versions.
 - [x] Wheel/install smoke added to CI.
 - [x] Public/private data boundary documented.
 

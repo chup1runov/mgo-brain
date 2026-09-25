@@ -9,7 +9,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - name: Build without runtime data or secrets
         run: docker build -t mgo-brain-audit .
       - name: Start non-root local-only smoke container
