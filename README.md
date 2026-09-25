@@ -82,6 +82,8 @@ Runtime telemetry, GPS tracks, SQLite/Parquet data, captures, credentials and de
 - [Integration bench](docs/BENCH.md)
 - [Ask MGO](docs/AI_GATEWAY.md)
 - [Testing](docs/TESTING.md)
+- [Support](SUPPORT.md)
+- [How to cite](CITATION.cff)
 - [Public release policy](docs/PUBLIC_RELEASE.md)
 
 ## Contributing

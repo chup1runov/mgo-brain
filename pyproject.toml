@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "mgo-brain"
 version = "0.5.11"
 description = "Experimental local telemetry and diagnostics platform for Microcar M.Go / Progress ACT"
+authors = [{name = "Pavel Chuprunov"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 keywords = ["microcar", "telemetry", "diagnostics", "can-bus", "vehicle", "fastapi"]

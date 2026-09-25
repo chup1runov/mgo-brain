@@ -11,6 +11,8 @@ REQUIRED = [
     "PROJECT.md",
     "LICENSE",
     "NOTICE",
+    "CITATION.cff",
+    "SUPPORT.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
     "README.md",
@@ -47,6 +49,8 @@ REQUIRED = [
     "mgo_brain/static/index.html",
     "mgo_brain/default_config/sources.json",
     ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/ISSUE_TEMPLATE/can_signal_report.md",
+    ".github/ISSUE_TEMPLATE/config.yml",
     ".github/dependabot.yml",
 ]
 

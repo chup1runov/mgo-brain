@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use MGO Brain in research or engineering work, please cite this software."
+title: "MGO Brain"
+type: software
+authors:
+  - family-names: "Chuprunov"
+    given-names: "Pavel"
+repository-code: "https://github.com/chup1runov/mgo-brain"
+url: "https://github.com/chup1runov/mgo-brain"
+version: "0.5.11"
+date-released: "2026-09-25"
+license: Apache-2.0
+abstract: >-
+  Experimental local telemetry, diagnostics, CAN research, history and
+  vehicle-observability platform for the Microcar M.Go / Progress ACT.

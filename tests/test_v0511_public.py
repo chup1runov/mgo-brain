@@ -33,3 +33,16 @@ def test_health_does_not_expose_runtime_paths():
     health_block=source.split('@app.get("/manifest.webmanifest")',1)[0]
     assert '"data_dir":' not in health_block
     assert '"config_dir":' not in health_block
+
+
+def test_installed_resource_detection_does_not_trust_unrelated_directories(tmp_path):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "static").mkdir()
+    assert resolve_config_dir(tmp_path) == PACKAGE / "default_config"
+    assert resolve_static_dir(tmp_path) == PACKAGE / "static"
+
+
+def test_apache_license_is_canonical_form():
+    license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    assert "APPENDIX: How to apply the Apache License to your work." in license_text
+    assert "Copyright [yyyy] [name of copyright owner]" in license_text
