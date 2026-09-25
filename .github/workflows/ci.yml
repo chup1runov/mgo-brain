@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -36,10 +36,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -58,10 +58,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -77,3 +77,49 @@ jobs:
         env:
           MGO_AI_PROVIDER: local
         run: pytest -q tests/test_v057_ai.py
+
+  package-wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+
+      - name: Install wheel outside repository
+        run: |
+          python -m venv /tmp/mgo-wheel
+          /tmp/mgo-wheel/bin/pip install dist/*.whl
+          /tmp/mgo-wheel/bin/pip check
+
+      - name: Smoke installed package and bundled resources
+        run: |
+          cd /tmp
+          export MGO_BRAIN_DATA_DIR=/tmp/mgo-wheel-data
+          /tmp/mgo-wheel/bin/mgo-brain > /tmp/mgo-wheel.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          /tmp/mgo-wheel/bin/python - <<'PY'
+          import json,time,urllib.request
+          for _ in range(60):
+              try:
+                  health=json.load(urllib.request.urlopen('http://127.0.0.1:8080/health',timeout=1))
+                  if health.get('ready'):
+                      assert 'data_dir' not in health and 'config_dir' not in health
+                      html=urllib.request.urlopen('http://127.0.0.1:8080/',timeout=1).read().decode()
+                      assert '<html lang="ru">' in html
+                      print('WHEEL_SMOKE_OK', health['version'], health['source'])
+                      break
+              except Exception:
+                  time.sleep(0.25)
+          else:
+              raise RuntimeError('installed-wheel server did not become ready')
+          PY

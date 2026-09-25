@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REQUIRED = [
     "PROJECT.md",
     "LICENSE",
+    "NOTICE",
     "CONTRIBUTING.md",
     "SECURITY.md",
     "README.md",
@@ -30,6 +31,7 @@ REQUIRED = [
     "docs/AI_GATEWAY.md",
     "docs/TESTING.md",
     "docs/RELEASE_PROCESS.md",
+    "docs/PUBLIC_RELEASE.md",
     "docs/BACKUP_RECOVERY.md",
     "docs/REFERENCES.md",
     "docs/GLOSSARY.md",
@@ -41,6 +43,9 @@ REQUIRED = [
     "config/hardware-plan.json",
     "config/ai-policy.json",
     "config/vehicle-profile.example.json",
+    "mgo_brain/resources.py",
+    "mgo_brain/static/index.html",
+    "mgo_brain/default_config/sources.json",
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/dependabot.yml",
 ]

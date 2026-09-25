@@ -1,43 +1,35 @@
 # Security Policy
 
-## Scope
+## Scope and trust model
 
-MGO Brain can expose vehicle telemetry, trip history, GPS-derived data and configuration over a local network. Treat the vehicle computer as a private device.
+MGO Brain can expose vehicle telemetry, trip history, GPS-derived data and configuration. Treat a deployed vehicle computer as a private device.
 
-## Current trust model
-
-The current web/API service is designed for a trusted local network. It does **not** yet provide user authentication suitable for an untrusted LAN or the public Internet.
+The current web/API service is designed for a **trusted local network**. It does not yet provide authentication suitable for an untrusted LAN or the public Internet.
 
 Therefore:
 
 - do not expose port 8080 directly to the Internet;
 - do not port-forward it from a router;
 - prefer an isolated vehicle hotspot / trusted LAN;
-- use a VPN or authenticated reverse proxy if remote access is added later;
-- keep the repository private while it contains vehicle-specific engineering data.
+- use a VPN or authenticated reverse proxy if remote access is added;
+- keep runtime telemetry, captures and deployment secrets outside the source repository.
 
-## Secrets
+## Secrets and private data
 
-Never commit:
+Never commit API keys, Wi-Fi/SIM/VPN credentials, private certificates, access tokens, exact private location history, or raw personal telemetry that is not intentionally sanitized for publication.
 
-- OpenAI/API keys;
-- Wi-Fi passwords;
-- SIM credentials;
-- VPN keys;
-- private certificates;
-- personal access tokens;
-- exact private location history intended to remain private.
-
-Use environment variables or deployment-only secret files excluded from Git.
+Use environment variables or deployment-only files excluded by Git.
 
 ## CAN security boundary
 
-Factory CAN discovery is receive-only. Software does not provide a factory-CAN transmit method. The OS CAN interface must also be configured listen-only during discovery.
+Factory CAN discovery is receive-only. Software does not expose a factory-CAN transmit method, and the Linux CAN interface must be independently verified as OS-level LISTEN-ONLY before physical factory-CAN use.
 
 ## Reporting a vulnerability
 
-For this private repository, report vulnerabilities directly to the repository owner rather than publishing them in a public issue.
+For vulnerabilities that could expose credentials, private telemetry or unsafe vehicle behavior, use GitHub private vulnerability reporting / a Security Advisory when available. Do not publish exploit details or secrets in a normal issue.
+
+If private reporting is unavailable, open a minimal issue asking the maintainer for a private reporting channel without including sensitive details.
 
 ## Supported versions
 
-Only the current `main` branch is actively maintained until formal releases begin.
+Only the current `main` branch is actively maintained until formal stable releases begin.

@@ -20,8 +20,10 @@ from .ai_models import AskMGORequest
 from .ai_gateway import AIGateway
 from .main_paths import configure_paths
 from .request_limits import RequestLimitMiddleware
+from .resources import resolve_static_dir
 
 ROOT = Path(__file__).resolve().parent.parent
+STATIC_DIR = resolve_static_dir(ROOT)
 settings = RuntimeSettings.from_env(ROOT)
 settings.ensure_runtime_dirs()
 configure_paths(config_dir=settings.config_dir)
@@ -43,14 +45,14 @@ async def lifespan(app: FastAPI):
         await service.stop()
 
 
-app = FastAPI(title="MGO Brain", version="0.5.10", lifespan=lifespan)
+app = FastAPI(title="MGO Brain", version="0.5.11", lifespan=lifespan)
 app.add_middleware(RequestLimitMiddleware)
-app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
 def dashboard():
-    return FileResponse(ROOT / "static" / "index.html")
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/health")
@@ -59,23 +61,21 @@ def health():
     return JSONResponse({
         **status,
         "status": "ok" if status["ready"] else "degraded",
-        "version": "0.5.10",
+        "version": "0.5.11",
         "source": service.source.name,
         "analytics": service.analytics.available(),
-        "data_dir": str(settings.data_dir),
-        "config_dir": str(settings.config_dir),
         "ai": ai_gateway.status().model_dump(mode="json"),
     }, status_code=200 if status["ready"] else 503)
 
 
 @app.get("/manifest.webmanifest")
 def manifest():
-    return FileResponse(ROOT / "static" / "manifest.webmanifest", media_type="application/manifest+json")
+    return FileResponse(STATIC_DIR / "manifest.webmanifest", media_type="application/manifest+json")
 
 
 @app.get("/service-worker.js")
 def service_worker():
-    return FileResponse(ROOT / "static" / "service-worker.js", media_type="application/javascript")
+    return FileResponse(STATIC_DIR / "service-worker.js", media_type="application/javascript")
 
 
 @app.get("/api/v1/state")

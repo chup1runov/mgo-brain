@@ -1,4 +1,4 @@
-> Актуальная проверенная точка: **v0.5.10**, аудит 19.09.2026. Начните с [русской точки входа](../START_HERE_RU.md). Более ранние отметки «готово» ниже относятся к программным прототипам, не к проверке автомобиля.
+> Актуальная программная точка: **v0.5.11**, подготовка публичного релиза 25.09.2026. Глубокий аудит v0.5.10 от 19.09.2026 остаётся базовой доказательной точкой. Начните с [русской точки входа](../START_HERE_RU.md).
 
 # MGO Brain Roadmap
 
@@ -103,6 +103,17 @@
 - [x] Bench scenario REST API + LAB controls.
 - [x] Headless `mgo-bench-smoke`.
 - [x] Start/trip/health/alert/Ask MGO integration tests.
+
+### v0.5.11 — Public Release Cleanup
+- [x] Apache-2.0 public license and NOTICE.
+- [x] Public-facing README / SECURITY / CONTRIBUTING.
+- [x] Packaged web assets and default configuration.
+- [x] Normal wheel-install support outside a source checkout.
+- [x] Docker uses a non-editable installed package.
+- [x] Health endpoint no longer exposes local filesystem paths.
+- [x] GitHub Actions upgraded to current major versions.
+- [x] Wheel/install smoke added to CI.
+- [x] Public/private data boundary documented.
 
 ## Next physical milestone — Hardware Survey
 

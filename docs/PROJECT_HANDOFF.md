@@ -1,6 +1,6 @@
 # MGO Brain project handoff
 
-Current checkpoint: **v0.5.10**, 2026-09-19.
+Current software checkpoint: **v0.5.11 public-release cleanup**, 2026-09-25. The deep audit/handoff evidence remains v0.5.10 from 2026-09-19.
 
 The authoritative continuation guide is now [START_HERE_RU.md](../START_HERE_RU.md).
 

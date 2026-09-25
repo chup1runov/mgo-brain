@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.11] — 2026-09-25 — Public release cleanup
+
+### Added
+- Apache-2.0 licensing and public-project NOTICE.
+- Public-facing README, SECURITY and CONTRIBUTING guidance.
+- Packaged static web assets and default JSON configuration.
+- Wheel-install smoke test from outside the repository.
+- Public release/privacy checklist.
+
+### Changed
+- Docker installs the package normally instead of relying on an editable checkout.
+- Default installed-wheel state directory uses per-user local storage unless overridden.
+- GitHub Actions use current major releases.
+- cantools compatibility range extended to <45 and remains covered by hardware CI.
+- Health response no longer exposes local data/config filesystem paths.
+
+### Still experimental
+- Public source does not imply a safe Internet-facing deployment.
+- Real vehicle CAN, electrical integration and diagnostic thresholds remain unverified.
+
 ## [0.5.10] — 2026-09-19 — Audit and chat-independent handoff
 
 ### Added

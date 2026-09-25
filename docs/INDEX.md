@@ -50,6 +50,7 @@ This is the main entry point for **MGO Brain** documentation.
 - [Release process](RELEASE_PROCESS.md)
 - [Backup & recovery](BACKUP_RECOVERY.md)
 - [Deployment](../deployment/README.md)
+- [Public release policy](PUBLIC_RELEASE.md)
 
 ## Reference
 

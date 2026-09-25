@@ -1,29 +1,44 @@
-# MGO Brain — v0.5.10
+# MGO Brain
 
-Локальная телеметрия, история и экспериментальная диагностика Microcar M.Go / F8 0.5 с Progress ACT / Lombardini LDW502. **Штатными критическими функциями автомобиля программа не управляет.**
+[![CI](https://github.com/chup1runov/mgo-brain/actions/workflows/ci.yml/badge.svg)](https://github.com/chup1runov/mgo-brain/actions/workflows/ci.yml)
+[![Repository audit](https://github.com/chup1runov/mgo-brain/actions/workflows/audit.yml/badge.svg)](https://github.com/chup1runov/mgo-brain/actions/workflows/audit.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-## Продолжить после удаления чата
+**Experimental local telemetry, diagnostics and vehicle-observability platform for the Microcar M.Go / F8 0.5 with Progress ACT / Lombardini LDW502.**
 
-**[Начать здесь — START_HERE_RU.md](START_HERE_RU.md)**. Там находятся передача контекста, исправления прежних утверждений, оставшиеся задачи, источники и prompt для нового чата.
+> **Safety:** research/prototype software. It is not certified automotive diagnostic or safety equipment. It must not replace OEM warnings or become required for starting, braking, steering, D/N/R selection, speed-limiter operation, or other safety-critical functions.
 
-Основные документы:
+![MGO Brain Russian dashboard](docs/audit/2026-09-19/dashboard-ru.png)
 
-- [Существенный контекст чата](docs/CHAT_HANDOFF_RU.md).
-- [Аудит 19.09.2026](docs/AUDIT_2026-09-19_RU.md) и [сохранённые результаты](docs/audit/2026-09-19/README.md).
-- [Оставшиеся работы](docs/REMAINING_WORK_RU.md).
-- [Источник и сохранность материалов](docs/SOURCE_MANIFEST_RU.md).
-- [Запуск и восстановление](docs/RECOVERY_RU.md).
-- [Полный индекс](docs/INDEX.md).
+## Features
 
-## Что работает программно
+- canonical signals with source quality, freshness and fallback;
+- simulator and multi-source integration bench;
+- deterministic local alerts and subsystem health;
+- start/trip history with SQLite and optional Parquet/DuckDB analytics;
+- passive CAN survey, recording, replay and numeric signal discovery;
+- adapter boundaries for SocketCAN, DBC, Sensor CAN, Modbus, VE.Direct, TPMS and GNSS/IMU;
+- Russian-first PWA dashboard with English fallback;
+- read-only Ask MGO evidence gateway with local fallback and optional external AI;
+- deployment, kiosk, backup and commissioning tooling.
 
-Симулятор и многоканальный software bench; канонические сигналы; агрегация с качеством/свежестью и резервом; локальные прототипные правила; предупреждения; история запусков/поездок; SQLite и Parquet/DuckDB; простой baseline; русский веб-интерфейс; текстовый Ask MGO; инструменты исследования CAN; deployment/kiosk/backup-заготовки.
+The codebase does **not** prove that any particular signal exists on the real M.Go CAN bus. Real vehicle mappings remain hypotheses until measured and reproduced.
 
-**Чего это не доказывает:** наличие конкретных сигналов на заводской CAN, правильность подключения проводов, точность диагностики неисправностей, работоспособность всего железа или соответствие автомобильным нормам безопасности. 80 записей в реестре — план, не 80 физических измерений. Bench v0.5.9 напрямую генерирует SourceUpdate и не является полным протокольным стендом.
+## Status
 
-## Запуск на компьютере
+Current software release: **v0.5.11**.
+
+Software tests, Docker smoke and real Chromium UI audits exist. Physical integration with the target vehicle has not yet been completed. Factory CAN pins/bitrate/DBC, sensor fitment, automotive power transients, sleep/wake behavior and diagnostic thresholds still require real measurements.
+
+See the [roadmap](docs/ROADMAP.md), [current backlog](docs/REMAINING_WORK_RU.md), [safety model](docs/SAFETY.md), and [documentation index](docs/INDEX.md).
+
+## Quick start
+
+Python 3.11+:
 
 ```bash
+git clone https://github.com/chup1runov/mgo-brain.git
+cd mgo-brain
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev,analytics]'
@@ -32,25 +47,51 @@ mgo-bench-smoke
 MGO_BRAIN_SOURCES_FILE="$PWD/config/sources-bench.json" MGO_AI_PROVIDER=local mgo-brain
 ```
 
-Открыть на этом компьютере `http://127.0.0.1:8080/`. Телефон и удалённый доступ требуют отдельной сетевой настройки. Не публиковать порт в Интернет. Локальный Ask MGO — шаблонный evidence-ответ, не отдельная локальная языковая модель. Облачный API выключен по умолчанию; модель задаётся явно после проверки её доступности.
+Open <http://127.0.0.1:8080/>.
 
-Docker (данные в контейнере временные без отдельного volume):
+A normal wheel install contains the default configuration and web assets; deployment environment variables can override them.
+
+## Docker
 
 ```bash
 docker build -t mgo-brain .
 docker run --rm -p 127.0.0.1:8080:8080 mgo-brain
 ```
 
-Программа в контейнере запускается не от root; исходный `data/` и секреты не копируются в образ. Для постоянной эксплуатации нужны правильно подготовленный volume, права, backup и испытания отключения питания.
+The container runs as a non-root user. Mount a persistent data volume for real use.
 
-## Проверки
+## Factory CAN boundary
 
-```bash
-python -m compileall -q mgo_brain tests
-python tools/repository_audit.py
-pytest -q
-```
+Factory CAN commissioning is receive-only. MGO Brain exposes no factory-CAN transmit method, Linux SocketCAN LISTEN-ONLY is verified before physical factory-CAN use, and no pin/bitrate/ID/scale assumption is accepted without evidence.
 
-Workflow `CI` проверяет Python-матрицу и опциональные зависимости. `Repository audit` добавляет инвентаризацию, JS/Markdown-проверки, настоящий Chromium, RU/EN, локальный AI и исчезновение live-значений при потере WebSocket. `Docker smoke` действительно собирает и запускает контейнер.
+See [Commissioning](docs/COMMISSIONING.md) and [CAN Survey Toolkit](docs/CAN_SURVEY.md).
 
-Точные SHA/результаты проверять в Actions и [validation.json](docs/audit/2026-09-19/validation.json), а не по старым сообщениям чата. Исторические версии сохранены в Git. Инструкции для следующего агента — [AGENTS.md](AGENTS.md).
+## Network security
+
+The service binds to `127.0.0.1` by default and is intended for a trusted local network. It does not currently implement authentication suitable for direct Internet exposure. Do not port-forward the API; use a closed LAN or authenticated VPN/reverse proxy for remote access.
+
+## Privacy
+
+Runtime telemetry, GPS tracks, SQLite/Parquet data, captures, credentials and deployment secrets are excluded from Git by policy. See [Data & Privacy](docs/DATA_PRIVACY.md).
+
+## Documentation
+
+- **Русская точка восстановления:** [START_HERE_RU.md](START_HERE_RU.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Hardware BOM](docs/HARDWARE_BOM.md)
+- [Integration bench](docs/BENCH.md)
+- [Ask MGO](docs/AI_GATEWAY.md)
+- [Testing](docs/TESTING.md)
+- [Public release policy](docs/PUBLIC_RELEASE.md)
+
+## Contributing
+
+Contributions are welcome, especially around CAN research, protocol adapters, failure-mode tests and documentation. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+
+Vehicle-specific claims must be marked as documented, observed, measured, confirmed or hypothesis.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
+
+MGO Brain is an independent project and is not affiliated with the vehicle, engine or hardware vendors referenced in this repository.
