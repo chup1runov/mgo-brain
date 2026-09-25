@@ -32,3 +32,25 @@ Public source code does **not** make a deployed MGO Brain instance safe to expos
 6. Enable GitHub private vulnerability reporting if available.
 
 Opaque historical ZIP archives are better kept as release assets or private backups rather than normal source-tree files.
+
+
+## Repository settings after publication
+
+Recommended GitHub settings:
+
+- description: `Experimental telemetry, diagnostics and CAN research for Microcar M.Go / Progress ACT`;
+- topics: `can-bus`, `vehicle-telemetry`, `diagnostics`, `microcar`, `fastapi`, `automotive`;
+- enable Issues;
+- enable private vulnerability reporting if available;
+- protect `main` with required PR/checks and no force-push/deletion.
+
+## Historical note before first public switch
+
+The current private history contains one early commit title using an unrelated internal project name. Current files are clean and the name is not part of MGO Brain, but **history and old Actions titles become public when repository visibility changes**.
+
+Before the first public switch, choose deliberately:
+
+1. accept that harmless historical naming artifact; or
+2. recreate/rewrite the public Git history and remove old Actions runs/technical branches.
+
+The current connector cannot delete old Actions runs or Git refs, so option 2 requires GitHub UI/CLI or a fresh public-history rewrite outside this automation.

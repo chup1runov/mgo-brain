@@ -1,5 +1,7 @@
 # Contributing
 
+By participating, follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 Contributions to MGO Brain are welcome. Safety-impacting vehicle claims require stronger evidence than ordinary application changes.
 
 ## Before changing code
