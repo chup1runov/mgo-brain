@@ -23,7 +23,8 @@ def test_public_metadata_and_license_are_consistent():
     project=json.loads((ROOT/"config"/"project.json").read_text(encoding="utf-8"))
     security=(ROOT/"SECURITY.md").read_text(encoding="utf-8")
     assert 'version = "0.5.11"' in py
-    assert 'license = {file = "LICENSE"}' in py
+    assert 'license = "Apache-2.0"' in py
+    assert 'license-files = ["LICENSE", "NOTICE"]' in py
     assert project["current_release"] == "0.5.11"
     assert project["license"] == "Apache-2.0"
     assert "keep the repository private" not in security.lower()

@@ -94,6 +94,26 @@ jobs:
           python -m pip install --upgrade pip build
           python -m build --wheel
 
+      - name: Inspect wheel contents
+        run: |
+          python - <<'PY'
+          import glob, zipfile
+          wheel=glob.glob('dist/*.whl')[0]
+          with zipfile.ZipFile(wheel) as z:
+              names=set(z.namelist())
+          required={
+              'mgo_brain/static/index.html',
+              'mgo_brain/static/i18n.js',
+              'mgo_brain/default_config/sources.json',
+              'mgo_brain/default_config/signals-v1.json',
+          }
+          missing=required-names
+          assert not missing, f'missing packaged resources: {sorted(missing)}'
+          assert any(name.endswith('.dist-info/licenses/LICENSE') for name in names), 'LICENSE missing from wheel'
+          assert any(name.endswith('.dist-info/licenses/NOTICE') for name in names), 'NOTICE missing from wheel'
+          print('WHEEL_CONTENTS_OK')
+          PY
+
       - name: Install wheel outside repository
         run: |
           python -m venv /tmp/mgo-wheel
