@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#101113" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+<script src="/static/i18n.js"></script>
+<title>MGO Brain</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark;--bg:#101113;--panel:#191b1f;--border:#30343a;--muted:#9ea3aa;--text:#eee;--normal:#77d58b;--watch:#e0c25c;--attention:#f39b55;--critical:#ff6262;--unknown:#8c929a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}button,select,input,textarea{font:inherit}.shell{max-width:1100px;margin:auto;padding:16px 16px 92px}header{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px}h1{font-size:1.55rem;margin:0}h2{font-size:1.12rem;margin:18px 0 10px}.muted,.label{color:var(--muted)}.label{font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}.badge{font-size:.78rem;border:1px solid var(--border);border-radius:99px;padding:5px 9px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric,.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px}.metric .value{font-size:1.35rem;font-weight:650;margin-top:3px}.hero .value{font-size:2.15rem}.hero{grid-column:span 1}.health-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.health-item{background:#15171a;border:1px solid var(--border);border-radius:12px;padding:10px}.status{font-weight:750}.NORMAL{color:var(--normal)}.WATCH{color:var(--watch)}.ATTENTION{color:var(--attention)}.CRITICAL{color:var(--critical)}.UNKNOWN,.UNQUALIFIED{color:var(--unknown)}.view{display:none}.view.active{display:block}.list{display:grid;gap:7px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #282c31;padding:8px 0}.row:last-child{border-bottom:0}.row-main{min-width:0}.small{font-size:.8rem}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}.alert{border-left:3px solid var(--border);padding-left:10px}.alert.CRITICAL{border-left-color:var(--critical)}.alert.ATTENTION{border-left-color:var(--attention)}.alert.WATCH{border-left-color:var(--watch)}.button{border:1px solid #3b4149;background:#20242a;color:#eee;border-radius:10px;padding:9px 11px}.button:hover{cursor:pointer;background:#292e35}.button.active{border-color:var(--watch);background:#302b1c}.button.danger{border-color:#6a3434}.faults{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:7px}.controls{display:flex;gap:8px;flex-wrap:wrap}.compare{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}.compare select{min-width:0;background:#20242a;color:#eee;border:1px solid var(--border);border-radius:9px;padding:8px}.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(16,17,19,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;overflow-x:auto;z-index:10}.nav button{flex:1;min-width:75px;border:0;background:transparent;color:var(--muted);padding:10px 8px calc(10px + env(safe-area-inset-bottom));font-size:.75rem}.nav button.active{color:var(--text);font-weight:700}.offline{color:var(--watch)}.good{color:var(--normal)}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#111317;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.75rem;max-height:420px;overflow:auto}.kpi-note{margin-top:5px;font-size:.72rem;color:var(--muted)}.ask-box textarea{width:100%;min-height:76px;background:#111317;color:#eee;border:1px solid var(--border);border-radius:10px;padding:10px;resize:vertical}.ask-answer{white-space:pre-wrap;line-height:1.45}.provider-badge{font-size:.72rem;padding:3px 7px;border:1px solid var(--border);border-radius:999px}.survey-grid{display:grid;grid-template-columns:1fr;gap:10px}.survey-grid textarea{width:100%;min-height:180px;background:#111317;color:#dfe3e8;border:1px solid var(--border);border-radius:10px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;resize:vertical}.survey-input{background:#20242a;color:#eee;border:1px solid var(--border);border-radius:9px;padding:9px 10px}.candidate{display:grid;grid-template-columns:80px 70px 1fr;gap:10px;align-items:center}.candidate .changes{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}@media(min-width:800px){.survey-grid{grid-template-columns:1fr 1fr}}
+.kiosk .shell{max-width:none}.kiosk header{margin-bottom:18px}.kiosk .nav{font-size:.95rem}@media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.health-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.faults{grid-template-columns:repeat(3,minmax(0,1fr))}.nav{left:50%;right:auto;transform:translateX(-50%);max-width:900px;border:1px solid var(--border);border-bottom:0;border-radius:14px 14px 0 0}.nav button{min-width:95px}.shell{padding-bottom:80px}}
+</style>
+</head>
+<body><div class="shell">
+<header><div><h1>MGO Brain</h1><div class="muted small"><span data-i18n="app.subtitle">v0.5.8 • русский интерфейс</span></div></div><div class="controls"><button id="langToggle" class="button small">RU/EN</button><span id="conn" class="badge" data-i18n="conn.connecting">подключение</span></div></header>
+<div id="dataOrigin" class="panel small" role="status">Нет подтверждённых данных автомобиля</div>
+
+<section id="home" class="view active">
+  <div class="grid">
+    <div class="metric hero"><div class="label" data-i18n="metric.speed">Скорость</div><div class="value"><span data-sig="vehicle.speed">0</span> <small data-i18n="unit.kmh">км/ч</small></div></div>
+    <div class="metric hero"><div class="label" data-i18n="metric.engine">Двигатель</div><div class="value"><span data-sig="engine.rpm">0</span> <small data-i18n="unit.rpm">об/мин</small></div></div>
+    <div class="metric"><div class="label" data-i18n="metric.mode">Режим</div><div class="value" id="mode">OFF</div></div>
+    <div class="metric"><div class="label" data-i18n="metric.overall">Общее состояние</div><div class="value status" id="overall">…</div></div>
+    <div class="metric"><div class="label" data-i18n="metric.coolant">ОЖ</div><div class="value"><span data-sig="engine.coolant_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label" data-i18n="metric.oil_pressure">Давление масла</div><div class="value"><span data-sig="engine.oil_pressure">–</span> <span data-i18n="unit.bar">бар</span></div></div>
+    <div class="metric"><div class="label" data-i18n="metric.battery">АКБ</div><div class="value"><span data-sig="electrical.battery_voltage">–</span> <span data-i18n="unit.volt">В</span></div></div>
+    <div class="metric"><div class="label" data-i18n="metric.cvt_drift">Отклонение CVT</div><div class="value"><span data-sig="transmission.cvt_ratio_deviation">–</span> %</div></div>
+  </div>
+  <h2 data-i18n="section.health">Состояние систем</h2><div id="healthHome" class="health-grid"></div>
+  <h2 data-i18n="section.alerts">Активные предупреждения</h2><div id="alertsHome" class="panel list"></div>
+  <h2 data-i18n="section.latest_trip">Последняя поездка</h2><div id="latestTrip" class="panel"></div>
+  <h2 data-i18n="section.ask">Спросить MGO</h2>
+  <div class="panel ask-box">
+    <div class="row">
+      <div><b data-i18n="ask.title">Диагностический помощник</b><div class="small muted" data-i18n="ask.subtitle">Ответ строится только по данным MGO Brain.</div></div>
+      <span id="aiProvider" class="provider-badge">LOCAL</span>
+    </div>
+    <textarea id="askMgoQuestion" data-i18n-placeholder="ask.placeholder" placeholder="Например: почему сегодня дольше заводился?"></textarea>
+    <div class="controls" style="margin-top:8px">
+      <button class="button" id="askMgoBtn" data-i18n="ask.button">Спросить MGO</button>
+      <button class="button" data-ai-question="Как сейчас чувствует себя двигатель?" data-ai-question-key="engine" data-i18n="ask.engine">Двигатель</button>
+      <button class="button" data-ai-question="Что с аккумулятором и зарядкой?" data-ai-question-key="battery" data-i18n="ask.battery">АКБ</button>
+      <button class="button" data-ai-question="Есть ли изменения по вариатору CVT?" data-ai-question-key="cvt" data-i18n="ask.cvt">CVT</button>
+    </div>
+    <div id="askMgoStatus" class="small muted" style="margin-top:8px" data-i18n="ask.ready">Готово.</div>
+    <div id="askMgoAnswer" class="ask-answer" style="margin-top:10px"></div>
+    <div id="askMgoTools" class="small muted" style="margin-top:8px"></div>
+  </div>
+</section>
+
+<section id="engine" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label" data-i18n="engine.rpm">Обороты</div><div class="value"><span data-sig="engine.rpm">–</span></div></div>
+    <div class="metric"><div class="label" data-i18n="engine.coolant">Температура ОЖ</div><div class="value"><span data-sig="engine.coolant_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label" data-i18n="engine.oil_temp">Температура масла</div><div class="value"><span data-sig="engine.oil_temp">–</span> °C</div></div>
+    <div class="metric"><div class="label" data-i18n="engine.oil_pressure">Давление масла</div><div class="value"><span data-sig="engine.oil_pressure">–</span> <span data-i18n="unit.bar">бар</span></div></div>
+    <div class="metric"><div class="label" data-i18n="engine.glow_current">Ток свечей накала</div><div class="value"><span data-sig="engine.glow_current">–</span> <span data-i18n="unit.amp">А</span></div></div>
+    <div class="metric"><div class="label" data-i18n="engine.starter_current">Ток стартера</div><div class="value"><span data-sig="engine.starter_current">–</span> <span data-i18n="unit.amp">А</span></div></div>
+  </div>
+  <h2 data-i18n="engine.start_history">История запусков</h2><div id="starts" class="panel list"></div>
+  <h2 data-i18n="engine.baselines">Базовые значения двигателя</h2><div id="engineBaselines" class="panel list"></div>
+</section>
+
+<section id="cvt" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label" data-i18n="cvt.ratio">Передаточное отношение CVT</div><div class="value"><span data-sig="transmission.cvt_ratio">–</span></div></div>
+    <div class="metric"><div class="label" data-i18n="cvt.drift">Отклонение отношения</div><div class="value"><span data-sig="transmission.cvt_ratio_deviation">–</span> %</div></div>
+    <div class="metric"><div class="label" data-i18n="cvt.primary_temp">Температура ведущего вариатора</div><div class="value"><span data-sig="transmission.cvt_temp_primary">–</span> °C</div></div>
+    <div class="metric"><div class="label" data-i18n="cvt.secondary_temp">Температура ведомого вариатора</div><div class="value"><span data-sig="transmission.cvt_temp_secondary">–</span> °C</div></div>
+  </div>
+  <h2 data-i18n="cvt.baseline">Историческая норма CVT</h2><div id="cvtBaselines" class="panel list"></div>
+</section>
+
+<section id="electrical" class="view">
+  <div class="grid">
+    <div class="metric"><div class="label" data-i18n="power.battery_voltage">Напряжение АКБ</div><div class="value"><span data-sig="electrical.battery_voltage">–</span> <span data-i18n="unit.volt">В</span></div></div>
+    <div class="metric"><div class="label" data-i18n="power.battery_current">Ток АКБ</div><div class="value"><span data-sig="electrical.battery_current">–</span> <span data-i18n="unit.amp">А</span></div></div>
+    <div class="metric"><div class="label" data-i18n="power.battery_soc">Заряд АКБ</div><div class="value"><span data-sig="electrical.battery_soc">–</span> %</div></div>
+    <div class="metric"><div class="label" data-i18n="power.alternator">Генератор</div><div class="value"><span data-sig="electrical.alternator_voltage">–</span> <span data-i18n="unit.volt">В</span></div></div>
+  </div>
+  <h2 data-i18n="power.baseline">Электрические базовые значения</h2><div id="electricalBaselines" class="panel list"></div>
+</section>
+
+<section id="trips" class="view">
+  <div class="panel">
+    <div class="label" data-i18n="trips.compare">Сравнить поездки</div><div class="compare"><select id="tripA"></select><select id="tripB"></select><button class="button" id="compareBtn" data-i18n="trips.compare_button">Сравнить</button></div>
+    <div id="compareResult" class="small" style="margin-top:10px"></div>
+  </div>
+  <h2 data-i18n="trips.history">История поездок</h2><div id="tripList" class="list"></div>
+  <h2 data-i18n="trips.report">Отчёт по выбранной поездке</h2><div id="tripReport" class="panel muted" data-i18n="trips.select_report">Выберите поездку для просмотра отчёта.</div>
+</section>
+
+<section id="service" class="view">
+  <h2 data-i18n="service.plan">Регламент обслуживания</h2><div id="maintenance" class="list"></div>
+  <div class="panel small muted" style="margin-top:12px"><span data-i18n="service.note">Регламент основан на документации Progress АCT / MGO. Он ещё не привязан к подтверждённому реальному одометру и датам замен.</span></div>
+</section>
+
+<section id="lab" class="view">
+
+  <h2 data-i18n="lab.bench">Интеграционный стенд</h2>
+  <div class="panel">
+    <div id="benchStatus" class="small muted" data-i18n="lab.bench_inactive">Bench-режим не активен.</div>
+    <div id="benchControls" class="controls" style="margin-top:10px"></div>
+    <button class="button" id="benchReset" style="margin-top:10px" data-i18n="lab.bench_reset">Перезапустить цикл</button>
+  </div>
+  <div class="controls"><button class="button danger" id="clearFaults">Сбросить неисправности симулятора</button><button class="button" id="refreshLab" data-i18n="lab.refresh">Обновить</button></div>
+  <h2 data-i18n="lab.faults">Лаборатория неисправностей</h2><div id="faults" class="faults"></div>
+  <h2 data-i18n="lab.analytics">Аналитика</h2><div id="analytics" class="panel"></div>
+  <h2 data-i18n="lab.baselines">Все базовые значения</h2><div id="allBaselines" class="panel list"></div>
+
+  <h2 data-i18n="lab.can_survey">Поиск CAN-сигналов</h2>
+  <div class="panel">
+    <div class="controls">
+      <input id="surveyLabel" class="survey-input" value="driver_door_open" aria-label="Survey event label" />
+      <button class="button" id="surveyDemo" data-i18n="lab.load_demo">Загрузить демо</button>
+      <button class="button" id="surveyAnalyze" data-i18n="lab.analyze">Сравнить логи</button>
+      <button class="button" id="surveySave" data-i18n="lab.save_session">Сохранить сессию</button>
+    </div>
+    <div class="survey-grid" style="margin-top:10px">
+      <div>
+        <div class="label" data-i18n="lab.baseline">Базовый candump</div>
+        <textarea id="surveyBaseline" spellcheck="false" placeholder="Paste candump while condition is inactive"></textarea>
+      </div>
+      <div>
+        <div class="label" data-i18n="lab.action">Candump после действия</div>
+        <textarea id="surveyAction" spellcheck="false" placeholder="Paste candump while condition is active"></textarea>
+      </div>
+    </div>
+    <input id="surveyNotes" class="survey-input" style="width:100%;margin-top:10px" placeholder="Notes, e.g. ignition ON, vehicle stationary, driver door opened once" />
+    <div id="surveySummary" class="small muted" style="margin-top:10px">No survey analyzed yet.</div>
+    <div id="surveyCandidates" class="list" style="margin-top:10px"></div>
+    <details style="margin-top:12px">
+      <summary data-i18n="lab.safe_dbc">Безопасный DBC-черновик</summary>
+      <pre id="surveyDbc">No DBC draft yet.</pre>
+    </details>
+  </div>
+
+  <h2 data-i18n="lab.numeric">Поиск числового сигнала</h2>
+  <div class="panel">
+    <div class="controls">
+      <input id="numericLabel" class="survey-input" value="vehicle_speed_gps" aria-label="Numeric signal label" />
+      <button class="button" id="numericDemo" data-i18n="lab.numeric_demo">Загрузить числовое демо</button>
+      <button class="button" id="numericAnalyze" data-i18n="lab.numeric_analyze">Найти числовой сигнал</button>
+    </div>
+    <div class="survey-grid" style="margin-top:10px">
+      <div><div class="label">CAN candump</div><textarea id="numericCan" spellcheck="false" placeholder="Timed candump from a varied drive"></textarea></div>
+      <div><div class="label">Reference CSV: timestamp,value</div><textarea id="numericRef" spellcheck="false" placeholder="GPS/reference time series"></textarea></div>
+    </div>
+    <div id="numericSummary" class="small muted" style="margin-top:10px">No numeric analysis yet.</div>
+    <div id="numericCandidates" class="list" style="margin-top:10px"></div>
+  </div>
+  <h2 data-i18n="lab.saved_sessions">Сохранённые сессии</h2>
+  <div id="surveySessions" class="list"></div>
+  <h2 data-i18n="lab.raw_state">Сырое текущее состояние</h2><pre id="rawState">{}</pre>
+</section>
+</div>
+
+<nav class="nav" aria-label="MGO Brain sections">
+  <button data-view="home" class="active" data-i18n="nav.home">ГЛАВНАЯ</button><button data-view="engine" data-i18n="nav.engine">ДВИГАТЕЛЬ</button><button data-view="cvt" data-i18n="nav.cvt">CVT</button><button data-view="electrical" data-i18n="nav.power">ПИТАНИЕ</button><button data-view="trips" data-i18n="nav.trips">ПОЕЗДКИ</button><button data-view="service" data-i18n="nav.service">СЕРВИС</button><button data-view="lab" data-i18n="nav.lab">LAB</button>
+</nav>
+
+<script>
+
+const kioskMode=new URLSearchParams(location.search).get('kiosk')==='1';
+if(kioskMode){
+  document.body.classList.add('kiosk');
+  let wakeLock=null;
+  const requestWakeLock=async()=>{try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen')}}catch{}};
+  requestWakeLock();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestWakeLock()});
+}
+
+const I18N=window.MGOI18N;I18N.apply();
+const tr=(key,fallback)=>I18N.t(key,fallback);
+const $=id=>document.getElementById(id);let lastState={signals:{}},health={},baseline={},trips=[];
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let lastLiveReceipt=0;
+function value(name){const r=lastState.signals?.[name];return performance.now()-lastLiveReceipt<3000 && r?.quality==='GOOD' ? r.value : null}
+function fmt(v,d=1){if(v===null||v===undefined)return '–';if(typeof v==='number')return Number(v).toFixed(d).replace(/\.0$/,'');return String(v)}
+function setSignals(){document.querySelectorAll('[data-sig]').forEach(el=>{const n=el.dataset.sig;el.textContent=fmt(value(n),n==='engine.rpm'?0:1)});$('mode').textContent=I18N.mode(lastState.mode||'OFF');$('rawState').textContent=JSON.stringify(lastState,null,2)}
+function statusHtml(x){return `<span class="status ${esc(x)}">${esc(I18N.status(x))}</span>`}
+function renderHealth(){$('dataOrigin').textContent=health.data_origin==='vehicle'?'Источник: автомобиль — экспериментальная телеметрия':'ДЕМОНСТРАЦИЯ / ' +(health.data_origin||'ожидание')+' — это не показания автомобиля';const items=health.subsystems||[];const cards=items.map(x=>`<div class="health-item"><div class="label">${esc(I18N.subsystem(x.subsystem))}</div>${statusHtml(x.status)}${x.reasons?.length?`<div class="small muted">${esc(x.reasons[0])}</div>`:''}</div>`).join('');$('healthHome').innerHTML=cards||'<div class="muted small">'+esc(tr('common.no_health','Нет данных о состоянии систем.'))+'</div>';$('overall').className='value status '+(health.overall||'UNKNOWN');$('overall').textContent=I18N.status(health.overall||'UNKNOWN');const aa=health.active_alerts||[];$('alertsHome').innerHTML=aa.length?aa.map(a=>`<div class="alert ${esc(a.severity)}"><b>${esc(a.code)}</b><div class="small muted">${esc(a.message)}</div></div>`).join('') :'<div class="small muted">'+esc(tr('common.no_alerts','Активных предупреждений нет.'))+'</div>'}
+function baselineRow(name){const x=baseline[name];if(!x)return'';const ref=x.reference,roll=x.rolling;return `<div class="row"><div class="row-main"><b>${esc(name)}</b><div class="small muted">reference ${ref?fmt(ref.mean,2)+' · n='+ref.n:'empty'} · rolling ${roll?fmt(roll.mean,2)+' · n='+roll.n:'empty'}</div></div>${statusHtml(x.qualified?'NORMAL':'UNQUALIFIED')}</div>`}
+function renderBaselines(){const engine=['starter_duration_s','min_crank_voltage_v','cranking_rpm','max_coolant_c','max_oil_temp_c','min_oil_pressure_bar'];const cvt=['avg_cvt_ratio_deviation_pct','max_cvt_temp_c'];const electrical=['min_crank_voltage_v','avg_running_voltage_v'];$('engineBaselines').innerHTML=engine.map(baselineRow).join('');$('cvtBaselines').innerHTML=cvt.map(baselineRow).join('');$('electricalBaselines').innerHTML=electrical.map(baselineRow).join('');$('allBaselines').innerHTML=Object.keys(baseline).map(baselineRow).join('')}
+async function json(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error(`${r.status} ${url}`);return r.json()}
+async function refreshCore(){try{[health,baseline]=await Promise.all([json('/api/v1/health-summary'),json('/api/v1/baselines')]);renderHealth();renderBaselines();$('conn').textContent=performance.now()-lastLiveReceipt<3000 ? tr('common.live','● в сети') : tr('common.offline','нет связи');$('conn').className='badge good'}catch(e){$('conn').textContent=tr('common.offline','нет связи');$('conn').className='badge offline'}}
+async function refreshStarts(){try{const x=await json('/api/v1/starts?limit=8');$('starts').innerHTML=x.length?x.map(s=>`<div class="row"><div><b>${new Date(s.started_at).toLocaleString()}</b><div class="small muted">${I18N.language()==='ru'?'стартер':'crank'} ${fmt(s.starter_duration_s,2)} s · ${I18N.language()==='ru'?'мин.':'min'} ${fmt(s.min_crank_voltage_v,2)} ${tr('unit.volt','В')} · ${s.baseline_eligible?tr('trip.baseline','эталон'):tr('trip.excluded','excluded')}</div></div></div>`).join('') :'<div class="muted small">'+esc(tr('common.no_starts','Истории запусков пока нет.'))+'</div>'}catch{}}
+function tripLabel(t){return `#${t.id} · ${new Date(t.started_at).toLocaleString()} · ${fmt(t.distance_km,1)} km`}
+async function refreshTrips(){try{trips=await json('/api/v1/trips?limit=30');$('tripList').innerHTML=trips.length?trips.map(t=>`<button class="panel button" onclick="showReport(${t.id})"><div><b>${esc(tripLabel(t))}</b></div><div class="small muted">${fmt(t.avg_speed_kmh,1)} ${tr('unit.kmh','км/ч')} ${tr('trip.avg','ср.')} · ${esc(I18N.status(t.diagnostic_status||'NORMAL'))} · ${t.baseline_eligible?tr('trip.baseline','эталон'):tr('trip.excluded','исключена')}</div></button>`).join('') :'<div class="panel muted small">'+esc(tr('common.no_trips','Завершённых поездок пока нет.'))+'</div>';const opts=trips.map(t=>`<option value="${t.id}">${esc(tripLabel(t))}</option>`).join('');$('tripA').innerHTML=opts;$('tripB').innerHTML=opts;if(trips.length>1)$('tripB').selectedIndex=1;if(trips[0]){$('latestTrip').innerHTML=`<b>${esc(tripLabel(trips[0]))}</b><div class="small muted">${fmt(trips[0].avg_speed_kmh,1)} ${tr('unit.kmh','км/ч')} ${tr('trip.avg','ср.')} · ${tr('trip.max_coolant','макс. ОЖ')} ${fmt(trips[0].max_coolant_c,1)} °C</div>`}else $('latestTrip').innerHTML='<span class="muted small">No trips yet.</span>'}catch{}}
+async function showReport(id){try{const r=await json(`/api/v1/trips/${id}/report`);$('tripReport').innerHTML=`${statusHtml(r.status)}<div class="small muted">${r.eligible_for_baseline?'Eligible for healthy baseline':'Excluded from healthy baseline'}</div><div class="list" style="margin-top:8px">${(r.findings||[]).map(f=>`<div>${esc(f)}</div>`).join('')}</div>${r.anomalies?.length?`<pre>${esc(JSON.stringify(r.anomalies,null,2))}</pre>`:''}`;switchView('trips')}catch(e){$('tripReport').textContent='Report unavailable.'}}
+async function compareTrips(){const a=$('tripA').value,b=$('tripB').value;if(!a||!b)return;try{const x=await json(`/api/v1/analytics/compare?trip_a=${a}&trip_b=${b}`);const keys=['max_coolant_c','min_oil_pressure_bar','avg_running_voltage_v','avg_cvt_ratio_deviation_pct','max_cvt_temp_c'];$('compareResult').innerHTML=keys.map(k=>{const d=x.comparison[k];return `<div class="row"><span>${esc(k)}</span><span>${fmt(d?.delta,2)} (${fmt(d?.delta_pct,1)}%)</span></div>`}).join('')}catch(e){$('compareResult').textContent='Comparison unavailable.'}}
+async function refreshService(){try{const x=await json('/api/v1/spec/maintenance');$('maintenance').innerHTML=x.items.map(i=>`<div class="panel row"><div><b>${esc(I18N.maintenance(i.component))}</b><div class="small muted">${esc(i.source)}</div></div><div>${i.distance_km?i.distance_km+' km':''}${i.distance_km&&i.time_months?' / ':''}${i.time_months?i.time_months+(I18N.language()==='ru'?' мес.':' mo'):''}</div></div>`).join('')}catch{}}
+
+const BENCH_LABELS={
+  normal:'lab.bench_normal',
+  weak_battery:'lab.bench_weak_battery',
+  undercharge:'lab.bench_undercharge',
+  low_oil_pressure:'lab.bench_low_oil',
+  overheat:'lab.bench_overheat',
+  cvt_overheat:'lab.bench_cvt_overheat',
+  sensorhub_dropout:'lab.bench_dropout'
+};
+async function refreshBench(){
+  try{
+    const x=await json('/api/v1/bench/status');
+    if(!x.active){
+      $('benchStatus').textContent=tr('lab.bench_inactive','Bench-режим не активен.');
+      $('benchControls').innerHTML='';
+      $('benchReset').disabled=true;
+      return;
+    }
+    $('benchReset').disabled=false;
+    $('benchStatus').textContent=`${tr('lab.bench_scenario','Сценарий')}: ${tr(BENCH_LABELS[x.scenario]||'',x.scenario)} · ${tr('lab.bench_phase','Фаза')}: ${I18N.mode((x.phase||'').toUpperCase())||x.phase} · ×${x.time_scale}`;
+    $('benchControls').innerHTML=(x.available_scenarios||[]).map(name=>`<button class="button ${name===x.scenario?'active':''}" onclick="setBenchScenario('${name}')">${esc(tr(BENCH_LABELS[name]||'',name))}</button>`).join('');
+  }catch(e){
+    $('benchStatus').textContent=tr('lab.bench_inactive','Bench-режим не активен.');
+  }
+}
+async function setBenchScenario(name){
+  try{await json('/api/v1/bench/scenario/'+encodeURIComponent(name),{method:'POST'});await refreshBench()}catch(e){$('benchStatus').textContent=e.message}
+}
+async function resetBench(){
+  try{await json('/api/v1/bench/reset',{method:'POST'});await refreshBench()}catch(e){$('benchStatus').textContent=e.message}
+}
+
+async function refreshLab(){try{const [f,a]=await Promise.all([json('/api/v1/simulator/faults'),json('/api/v1/analytics/summary')]);$('faults').innerHTML=f.faults.map(x=>`<button class="button ${x.active?'active':''}" onclick="toggleFault('${x.name}',${x.active})"><b>${esc(x.name)}</b><div class="small muted">${esc(x.description)}</div></button>`).join('');$('analytics').innerHTML=`<div class="row"><span>DuckDB</span><b>${a.available?'available':'fallback mode'}</b></div><div class="row"><span>Parquet trips</span><b>${a.trip_files}</b></div><div class="row"><span>Samples</span><b>${a.samples??'–'}</b></div>${a.aggregates&&Object.keys(a.aggregates).length?`<pre>${esc(JSON.stringify(a.aggregates,null,2))}</pre>`:''}`}catch{}}
+
+async function loadSurveyDemo(){try{const x=await json('/api/v1/survey/sample');$('surveyBaseline').value=x.baseline;$('surveyAction').value=x.action;$('surveyLabel').value=x.label;$('surveySummary').textContent='Demo loaded. Click Аnalyze.'}catch(e){$('surveySummary').textContent='Unable to load demo.'}}
+function surveyChangeText(c){return (c.changed_bytes||[]).slice(0,5).map(b=>{const a=b.baseline_top?.hex??'--',z=b.action_top?.hex??'--';return 'b'+b.index+': '+a+'→'+z+' ('+fmt((b.score||0),2)+')'}).join(' · ') || (c.only_in_action?'appears only during action':c.only_in_baseline?'disappears during action':'presence change')}
+async function analyzeSurvey(){const baseline=$('surveyBaseline').value,action=$('surveyAction').value,label=$('surveyLabel').value||'event';if(!baseline.trim()||!action.trim()){$('surveySummary').textContent='Paste or load both logs first.';return}try{$('surveySummary').textContent='Analyzing…';const x=await json('/api/v1/survey/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({baseline,action,label,max_candidates:30})});$('surveySummary').textContent=`baseline ${x.baseline.frames} frames / ${x.baseline.unique_ids} IDs · action ${x.action.frames} frames / ${x.action.unique_ids} IDs · candidates ${x.candidates.length}`;$('surveyCandidates').innerHTML=x.candidates.length?x.candidates.map((c,i)=>`<div class="panel candidate"><b>#${i+1} ${esc(c.id_hex)}</b><span class="status ${c.score>=5?'NORMAL':'UNKNOWN'}">${fmt(c.score,2)}</span><div class="changes">${esc(surveyChangeText(c))}</div></div>`).join(''):'<div class="small muted">No strong differences found.</div>';$('surveyDbc').textContent=x.draft_dbc||'No draft.'}catch(e){$('surveySummary').textContent='Analysis failed: '+e.message}}
+
+
+async function saveSurveySession(){
+  const baseline=$('surveyBaseline').value,action=$('surveyAction').value,label=$('surveyLabel').value||'event',notes=$('surveyNotes').value||'';
+  if(!baseline.trim()||!action.trim()){$('surveySummary').textContent='Paste or load both logs before saving.';return}
+  try{
+    const x=await json('/api/v1/survey/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({baseline,action,label,notes,max_candidates:30})});
+    $('surveySummary').textContent='Saved session '+x.id;
+    await refreshSurveySessions();
+  }catch(e){$('surveySummary').textContent='Save failed: '+e.message}
+}
+async function refreshSurveySessions(){
+  try{
+    const x=await json('/api/v1/survey/sessions?limit=20');
+    $('surveySessions').innerHTML=x.length?x.map(s=>{
+      const top=s.top_candidate?esc(s.top_candidate.id_hex)+' · score '+fmt(s.top_candidate.score,2):'no candidate';
+      return '<div class="panel"><div class="row"><div><b>'+esc(s.label)+'</b><div class="small muted">'+esc(s.created_at)+'</div></div><div class="small mono">'+top+'</div></div><div class="small muted">'+esc(s.notes||'')+'</div></div>'
+    }).join(''):'<div class="small muted">No saved survey sessions yet.</div>';
+  }catch(e){$('surveySessions').innerHTML='<div class="small muted">Unable to load sessions.</div>'}
+}
+
+
+async function loadNumericDemo(){try{const x=await json('/api/v1/survey/numeric/sample');$('numericCan').value=x.can_log;$('numericRef').value=x.reference_csv;$('numericLabel').value=x.label;$('numericSummary').textContent='Numeric demo loaded.'}catch(e){$('numericSummary').textContent='Unable to load numeric demo.'}}
+async function analyzeNumeric(){const can_log=$('numericCan').value,reference_csv=$('numericRef').value,label=$('numericLabel').value||'numeric_signal';if(!can_log.trim()||!reference_csv.trim()){$('numericSummary').textContent='Load both CAN and reference data first.';return}try{$('numericSummary').textContent='Analyzing…';const x=await json('/api/v1/survey/numeric',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({can_log,reference_csv,label,max_time_gap_s:0.25,min_samples:12,max_candidates:30})});$('numericSummary').textContent=`reference ${x.reference_samples} samples · CAN ${x.can_frames} frames · candidates ${x.candidates.length}`;$('numericCandidates').innerHTML=x.candidates.length?x.candidates.slice(0,20).map((c,i)=>`<div class="panel candidate"><b>#${i+1} ${esc(c.id_hex)}</b><span class="status ${c.r2>0.95?'NORMAL':'UNKNOWN'}">R² ${fmt(c.r2,3)}</span><div class="changes">${esc(c.field)} · ${esc(c.hypothesis)} · score ${fmt(c.score,3)}</div></div>`).join(''):'<div class="small muted">No numeric candidates found.</div>'}catch(e){$('numericSummary').textContent='Numeric analysis failed: '+e.message}}
+
+
+async function refreshAIStatus(){
+  try{
+    const x=await json('/api/v1/ai/status');
+    $('aiProvider').textContent=(x.provider||'local').toUpperCase();
+    $('aiProvider').className='provider-badge '+(x.configured?'good':'offline');
+    $('aiProvider').title=x.detail||'';
+  }catch{}
+}
+async function askMgo(question){
+  const q=(question||$('askMgoQuestion').value||'').trim();
+  if(!q){$('askMgoStatus').textContent='Введите вопрос.';return}
+  $('askMgoQuestion').value=q;
+  $('askMgoStatus').textContent='Собираю данные…';
+  $('askMgoAnswer').textContent='';
+  $('askMgoTools').textContent='';
+  try{
+    const x=await json('/api/v1/ai/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,language:I18N.language(),include_evidence:false})});
+    $('askMgoAnswer').textContent=x.answer||'Нет ответа.';
+    $('askMgoStatus').textContent=x.warnings?.length?'Ответ готов с предупреждениями: '+x.warnings.join(' · '):'Ответ готов.';
+    $('askMgoTools').textContent=x.tools_used?.length?'Данные: '+x.tools_used.join(', '):'';
+    $('aiProvider').textContent=(x.provider||'local').toUpperCase();
+  }catch(e){
+    $('askMgoStatus').textContent='Ask MGO недоступен: '+e.message;
+  }
+}
+
+async function toggleFault(name,active){await fetch(`/api/v1/simulator/faults/${name}/${active?'disable':'enable'}`,{method:'POST'});refreshLab();refreshCore()}
+async function clearFaults(){await fetch('/api/v1/simulator/faults/clear',{method:'POST'});refreshLab();refreshCore()}
+function switchView(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));localStorage.setItem('mgo-view',id);if(id==='trips')refreshTrips();if(id==='service')refreshService();if(id==='lab'){refreshLab();refreshSurveySessions();refreshBench()}}
+$('benchReset').onclick=resetBench;
+$('langToggle').onclick=()=>{
+  const params=new URLSearchParams(location.search);
+  params.set('lang',I18N.language()==='ru'?'en':'ru');
+  location.search=params.toString();
+};
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));$('compareBtn').onclick=compareTrips;$('clearFaults').onclick=clearFaults;$('refreshLab').onclick=refreshLab;$('surveyDemo').onclick=loadSurveyDemo;$('surveyAnalyze').onclick=analyzeSurvey;$('surveySave').onclick=saveSurveySession;$('numericDemo').onclick=loadNumericDemo;$('numericAnalyze').onclick=analyzeNumeric;$('askMgoBtn').onclick=()=>askMgo();document.querySelectorAll('[data-ai-question]').forEach(b=>b.onclick=()=>{
+  const map={
+    engine:I18N.language()==='ru'?'Как сейчас чувствует себя двигатель?':'How is the engine doing now?',
+    battery:I18N.language()==='ru'?'Что с аккумулятором и зарядкой?':'How are the battery and charging system?',
+    cvt:I18N.language()==='ru'?'Есть ли изменения по вариатору CVT?':'Are there any changes in CVT behavior?'
+  };
+  askMgo(map[b.dataset.aiQuestionKey]||b.dataset.aiQuestion)
+});
+const saved=localStorage.getItem('mgo-view');if(saved&&$(saved))switchView(saved);
+setInterval(()=>{if(performance.now()-lastLiveReceipt>=3000){setSignals();$('conn').textContent=tr('common.offline','нет связи');$('conn').className='badge offline'}},500);
+const proto=location.protocol==='https:'?'wss':'ws';let ws;function connect(){ws=new WebSocket(`${proto}://${location.host}/ws/live`);ws.onopen=()=>{$('conn').textContent='● live';$('conn').className='badge good'};ws.onmessage=e=>{lastLiveReceipt=performance.now();lastState=JSON.parse(e.data);setSignals()};ws.onclose=()=>{lastLiveReceipt=0;setSignals(); $('conn').textContent=tr('common.reconnecting','переподключение');$('conn').className='badge offline';setTimeout(connect,1500)}}connect();
+setInterval(refreshCore,1000);setInterval(refreshStarts,5000);setInterval(refreshTrips,5000);refreshCore();refreshStarts();refreshTrips();refreshService();refreshSurveySessions();refreshAIStatus();refreshBench();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js').catch(()=>{}))}
+</script>
+</body></html>

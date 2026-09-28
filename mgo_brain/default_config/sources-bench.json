@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "stale_after_s": 3.0,
+  "sources": [
+    {
+      "type": "bench",
+      "enabled": true,
+      "options": {
+        "scenario": "normal",
+        "time_scale": 4.0
+      }
+    }
+  ]
+}

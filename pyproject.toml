@@ -1,11 +1,24 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mgo-brain"
-version = "0.5.10"
-description = "Local telemetry, diagnostics and digital-twin prototype for Microcar M.Go / Progress ACT"
+version = "0.5.11"
+description = "Experimental local telemetry and diagnostics platform for Microcar M.Go / Progress ACT"
+authors = [{name = "Pavel Chuprunov"}]
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+keywords = ["microcar", "telemetry", "diagnostics", "can-bus", "vehicle", "fastapi"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Monitoring",
+]
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.128,<1",
@@ -31,6 +44,12 @@ dev = [
   "httpx>=0.27,<1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/chup1runov/mgo-brain"
+Repository = "https://github.com/chup1runov/mgo-brain"
+Issues = "https://github.com/chup1runov/mgo-brain/issues"
+Documentation = "https://github.com/chup1runov/mgo-brain/tree/main/docs"
+
 [project.scripts]
 mgo-brain = "mgo_brain.main:run"
 mgo-survey = "mgo_brain.survey_cli:main"
@@ -46,6 +65,9 @@ mgo-bench-smoke = "mgo_brain.bench_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["mgo_brain*"]
+
+[tool.setuptools.package-data]
+mgo_brain = ["static/*", "default_config/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

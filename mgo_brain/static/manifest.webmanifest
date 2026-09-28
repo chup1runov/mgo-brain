@@ -1,0 +1,19 @@
+{
+  "name": "MGO Brain",
+  "short_name": "MGO Brain",
+  "description": "Локальная приборная панель, телеметрия и диагностика MGO Brain",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101113",
+  "theme_color": "#101113",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "ru"
+}

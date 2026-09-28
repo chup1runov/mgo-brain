@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
+from .resources import resolve_config_dir, resolve_data_dir
+
 
 @dataclass(frozen=True)
 class RuntimeSettings:
@@ -35,8 +37,10 @@ class RuntimeSettings:
     ) -> "RuntimeSettings":
         env = os.environ if environ is None else environ
         root_path = Path(root).resolve()
-        data_dir = Path(env.get("MGO_BRAIN_DATA_DIR", str(root_path / "data"))).expanduser()
-        config_dir = Path(env.get("MGO_BRAIN_CONFIG_DIR", str(root_path / "config"))).expanduser()
+        data_default = resolve_data_dir(root_path)
+        config_default = resolve_config_dir(root_path)
+        data_dir = Path(env.get("MGO_BRAIN_DATA_DIR", str(data_default))).expanduser()
+        config_dir = Path(env.get("MGO_BRAIN_CONFIG_DIR", str(config_default))).expanduser()
         sources_file_raw = env.get("MGO_BRAIN_SOURCES_FILE")
         sources_file = Path(sources_file_raw).expanduser().resolve() if sources_file_raw else None
         host = env.get("MGO_BRAIN_HOST", "127.0.0.1")

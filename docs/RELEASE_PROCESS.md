@@ -15,13 +15,16 @@ Use semantic intent:
 1. compile;
 2. full pytest;
 3. hardware-optional CI where applicable;
-4. verify `/health` version;
-5. update README current version;
-6. update CHANGELOG;
-7. update ROADMAP;
-8. update PROJECT_HANDOFF;
-9. update PROJECT_STATE if milestone changes;
-10. update ADRs for architecture decisions.
+4. package-wheel clean-install smoke;
+5. Repository audit / browser smoke where applicable;
+6. Docker smoke where applicable;
+7. verify `/health` version;
+8. update README current version;
+9. update CHANGELOG;
+10. update ROADMAP;
+11. update PROJECT_HANDOFF;
+12. update PROJECT_STATE if milestone changes;
+13. update ADRs for architecture decisions.
 
 ## Vehicle-specific gate
 

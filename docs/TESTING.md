@@ -25,6 +25,16 @@ Pure algorithms:
 - numeric discovery;
 - sensor codecs.
 
+### Packaging / clean install
+
+Public releases must also verify:
+
+- build a wheel;
+- install it into a clean virtualenv outside the repository;
+- start `mgo-brain` from that environment;
+- confirm packaged web assets/default config are available;
+- confirm `/health` and the Russian UI load.
+
 ### Integration
 
 - API routes;
@@ -70,5 +80,8 @@ A release should not be called complete until:
 - compile passes;
 - tests pass;
 - hardware optional job passes when affected;
+- package-wheel clean-install job passes;
+- Repository audit / browser smoke passes for UI or public-release changes;
+- Docker smoke passes for packaging/container changes;
 - docs/roadmap/handoff are synchronized;
 - safety boundary is unchanged or explicitly reviewed.

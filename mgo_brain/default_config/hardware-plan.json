@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "policy": "planning-only; verify current revision/specification/fit before purchase",
+  "items": [
+    {
+      "id": "main_computer",
+      "preferred": "AutoPi TMU CM4 or equivalent automotive Linux computer",
+      "status": "preferred",
+      "verify_before_purchase": true
+    },
+    {
+      "id": "sensorhub",
+      "preferred": "protected ESP32-S3 CAN/RS485 board",
+      "status": "preferred_class",
+      "verify_before_purchase": true
+    },
+    {
+      "id": "isolated_digital_inputs",
+      "preferred": "Modbus RTU isolated 12 V digital input modules",
+      "status": "planned",
+      "verify_before_purchase": true
+    },
+    {
+      "id": "battery_monitor",
+      "preferred": "Victron SmartShunt IP65 500 A class",
+      "status": "candidate",
+      "verify_before_purchase": true
+    },
+    {
+      "id": "oil_pressure_temperature",
+      "preferred": "Bosch Motorsport PST-F 1 class",
+      "status": "candidate",
+      "blocked_by": ["confirm oil sender thread / safe take-off"],
+      "verify_before_purchase": true
+    },
+    {
+      "id": "coolant_temperature",
+      "preferred": "independent automotive temperature sensor",
+      "status": "candidate",
+      "blocked_by": ["measure hose/port geometry"],
+      "verify_before_purchase": true
+    },
+    {
+      "id": "engine_vibration",
+      "preferred": "ADXL355-class low-noise accelerometer",
+      "status": "candidate",
+      "verify_before_purchase": true
+    },
+    {
+      "id": "tpms",
+      "preferred": null,
+      "status": "planned",
+      "blocked_by": ["select vendor/protocol"],
+      "verify_before_purchase": true
+    },
+    {
+      "id": "dedicated_display",
+      "preferred": "7-10 inch display/tablet",
+      "status": "deferred",
+      "blocked_by": ["validate UI position/size in vehicle"],
+      "verify_before_purchase": true
+    }
+  ]
+}

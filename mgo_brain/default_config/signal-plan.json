@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.1",
+  "policy": "read-only-first",
+  "sources": {
+    "simulator": "active in v0.2",
+    "can.bfi": "planned",
+    "sensorhub.can": "planned",
+    "modbus.di": "planned",
+    "smartshunt": "planned"
+  },
+  "notes": [
+    "Dashboard and diagnostics consume canonical signals, not hardware-specific frames.",
+    "CAN adapter must start in listen-only mode.",
+    "OEM warning circuits remain independent of MGO Brain.",
+    "AI is not the sole path for critical alerts."
+  ]
+}
