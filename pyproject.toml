@@ -32,7 +32,7 @@ analytics = [
 ]
 hardware = [
   "python-can>=4,<5",
-  "cantools>=39,<42",
+  "cantools>=39,<45",
   "pymodbus>=3,<4",
   "pyserial>=3.5,<4",
 ]
